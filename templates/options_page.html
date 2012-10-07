@@ -1,0 +1,18 @@
+<div class="wrap">
+<div id="icon-options-general" class="icon32"><br></div><h2>After Publish Drafts</h2>
+	
+	<form action="" method="post">
+	
+	<h3>Set Permitted Post Types</h3>
+	{{#all_types}}
+		<label>
+			<input type="checkbox" name="post_types[]" value={{name}} {{#supported}}checked="checked"{{/supported}}> &nbsp;{{name}}
+		</label><br>
+	{{/all_types}}
+	
+	<br>
+	
+	<input type="submit" class="button button-primary" value="Update">
+	</form>
+	
+</div>

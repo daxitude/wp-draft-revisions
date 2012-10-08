@@ -3,7 +3,7 @@
 /*
  * singleton-ish class for passing data to Mustache to render
  */
-abstract class APD_Mustache {
+abstract class DPP_Mustache {
 
 	private static $engine;
 	private static $dir;
@@ -51,4 +51,4 @@ abstract class APD_Mustache {
 
 }
 
-APD_Mustache::init();
+DPP_Mustache::init();

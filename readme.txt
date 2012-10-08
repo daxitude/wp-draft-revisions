@@ -1,4 +1,4 @@
-=== After Publish Post ===
+=== Drafts of Published Posts ===
 Contributors: daxitude
 Tags: @TODO
 Requires at least: 3.4

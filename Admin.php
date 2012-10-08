@@ -1,8 +1,8 @@
 <?php
 
-class APD_Admin {
+class DPP_Admin {
 	
-	public function __construct(&$parent) {
+	public function __construct(&$parent) {		
 		$this->parent = &$parent;
 		
 		// admin menu page to set allowable post types
@@ -10,11 +10,12 @@ class APD_Admin {
 		
 		// add meta boxes
 		add_action('add_meta_boxes', array($this, 'meta_boxes'));
+		
 	}
 	
 	public function options_page() {
 		add_options_page(
-			'APD Options',
+			'DPP Options',
 			'After Publish Drafts',
 			'manage_options',
 			'apd_options',
@@ -30,6 +31,7 @@ class APD_Admin {
 		}
 		
 		$all_types = get_post_types();
+		// remove attachment, revision, and nav_menu_item from the list of options
 		$all_types = array_filter(
 			$all_types,
 			create_function(
@@ -44,18 +46,23 @@ class APD_Admin {
 			$all_types[$key] = array('name' => $value, 'supported' => in_array($value, $supported));
 		}
 			
-		echo APD_Mustache::render('options_page', array(
+		echo DPP_Mustache::render('options_page', array(
 			'all_types' => array_values($all_types)
 		));
 	}
-	
+
+	// @todo figure out what post statuses should be allowed to transition to a status of apd_draft
 	public function meta_boxes() {
 		global $post;
-		if ( !$this->parent->post_type_is_supported($post->post_type) )
+		if (
+			!$this->parent->post_type_is_supported($post->post_type) ||
+			!in_array($post->post_status, array('publish', 'private', $this->parent->status_value))
+		)
 			return;
 		
 		if ( $this->parent->is_draft($post->ID) ) {
 			$tpl = 'render_is_draft_meta_box';
+			add_action('admin_print_scripts', array($this->parent, 'add_js'));
 		}
 		else {
 			$tpl = 'render_drafts_meta_box';
@@ -63,7 +70,7 @@ class APD_Admin {
 		
 		add_meta_box(
 			'apd-draft',
-			'Drafts',
+			'Revision Drafts',
 			array($this, $tpl),
 			$post->post_type,
 			'side',
@@ -72,19 +79,19 @@ class APD_Admin {
 	}
 	
 	public function render_is_draft_meta_box($post) {
-		$parent = get_post($post->parent_id);
-		$parent->admin_link = get_edit_post_link($post->ID);
-		echo APD_Mustache::render('adraft_meta_box', array('parent' => (array) $parent ));
+		$parent = get_post($post->post_parent);
+		$parent->admin_link = get_edit_post_link($parent->ID, '&');
+		echo DPP_Mustache::render('adraft_meta_box', array('parent' => (array) $parent ));
 	}
 	
 	public function render_drafts_meta_box($post) {
 		$kids = get_children(array(
-			'list_of_drafts' => true,
-			'post_parent' => $post->ID
-//			'post_status' => 'draft'
+//			'list_of_drafts' => true,
+			'post_parent' => $post->ID,
+			'post_status' => $this->parent->status_value
 //			'post__in' => $this->parent->get_draft_ids()
 		));
-
+		
 		// turn kids into a basic array and replace author id with author nicename
 		$kids = array_values($kids);
 		$kids = array_map(
@@ -94,7 +101,7 @@ class APD_Admin {
 			),
 			$kids
 		);
-		echo APD_Mustache::render('drafts_meta_box', array('kids' => $kids));
+		echo DPP_Mustache::render('drafts_meta_box', array('kids' => $kids));
 	}
 	
 	

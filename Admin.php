@@ -13,12 +13,17 @@ class DPP_Admin {
 		
 	}
 	
+	public function add_js() {
+		wp_register_script( 'dppjs', plugins_url( '/assets/dpp.dev.js', __FILE__ ), '', '1.0', 'true' );
+		wp_enqueue_script( 'dppjs' );
+	}
+	
 	public function options_page() {
 		add_options_page(
-			'DPP Options',
-			'After Publish Drafts',
+			'Drafts of Published Post Options',
+			'Draft Published',
 			'manage_options',
-			'apd_options',
+			'dpp_options',
 			array($this, 'render_options_page')
 		);
 		
@@ -62,7 +67,7 @@ class DPP_Admin {
 		
 		if ( $this->parent->is_draft($post->ID) ) {
 			$tpl = 'render_is_draft_meta_box';
-			add_action('admin_print_scripts', array($this->parent, 'add_js'));
+			add_action('admin_print_scripts', array($this, 'add_js'));
 		}
 		else {
 			$tpl = 'render_drafts_meta_box';
@@ -70,7 +75,7 @@ class DPP_Admin {
 		
 		add_meta_box(
 			'apd-draft',
-			'Revision Drafts',
+			'Drafts of Published',
 			array($this, $tpl),
 			$post->post_type,
 			'side',
@@ -103,6 +108,8 @@ class DPP_Admin {
 		);
 		echo DPP_Mustache::render('drafts_meta_box', array('kids' => $kids));
 	}
+	
+
 	
 	
 }

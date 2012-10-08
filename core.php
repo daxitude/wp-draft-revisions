@@ -23,20 +23,12 @@ class Draft_Published_Post {
 		
 		$this->install_or_update();
 		
-		// hook into all queries to remove any drafts from the results
-//		add_filter( 'pre_get_posts', array($this, 'filter_drafts') );
-		
 		// register the custom post status
 		add_action('init', array($this, 'add_post_status'), 2);
 		// does post type have to support revisions?
-		add_action('pre_post_update', array($this, 'check_and_route_transition'), 1);
-
-//		add_action('transition_post_status', array($this, 'publish_draft'), 10, 3);
-		
-		add_action('apd_draft_to_publish', array($this, 'publish_draft'));
-		
-//		add_action('publish_to');
-		
+		add_action('pre_post_update', array($this, 'route_create'), 1);		
+		add_action('apd_draft_to_publish', array($this, 'route_publish'));
+				
 		// add action to deal with post deletion
 		// add action to deal with post update while a draft is out there?
 		
@@ -52,8 +44,8 @@ class Draft_Published_Post {
 			'exclude_from_search' => true,
 			'show_in_admin_all_list' => false,
 			'show_in_admin_status_list' => true,
-			'label_count' => _n_noop( 'Revision Drafts <span class="count">(%s)</span>',
-				'Revision Drafts <span class="count">(%s)</span>' )
+			'label_count' => _n_noop( 'Drafts of Published <span class="count">(%s)</span>',
+				'Drafts of Published <span class="count">(%s)</span>' )
 		) );
 	}
 	
@@ -61,20 +53,11 @@ class Draft_Published_Post {
 		$this->admin = new DPP_Admin(&$this);
 	}
 	
-	public function add_js() {
-		wp_register_script( 'dppjs', plugins_url( '/assets/dpp.dev.js', __FILE__ ), '', '1.0', 'true' );
-		wp_enqueue_script( 'dppjs' );
-	}
-	
-	// not sure if this will be needed
-	public function filter_drafts($query) {
-//		print_r($query);
-	}
-	
 	// add support for a post type
 	public function add_post_type_support($post_type) {
 		$types = $this->get_permitted_post_types();
-		$this->update_option(array( 'post_types' => $types + $post_type ));
+		$types[] = $post_type;
+		$this->update_option(array( 'post_types' => $types ));
 	}
 	
 	// gets the post types allowed for drafts as defined by the user
@@ -90,18 +73,19 @@ class Draft_Published_Post {
 	}
 
 	// 
-	public function check_and_route_transition($id) {
-		global $post;
-		
+	public function route_create($id) {
+		global $post;	
 		// don't do anything if an autosave
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
 			return $id;
-							
+
 		// if we got this far, check user permissions
 		
-		// check to see if we are saving a draft of a draft
+		// check to see if we are saving a new draft
 		if ( isset($_POST['save']) && $_POST['save'] == self::$draft_text ) {
-			$this->create_draft($id);
+			$draft_id = $this->create_draft($id);
+			wp_redirect(admin_url('post.php?action=edit&post=' . $draft_id));
+			exit();
 
 		} else {
 			return $id;
@@ -110,14 +94,14 @@ class Draft_Published_Post {
 	}
 	
 	// create a draft of a published post
-	public function create_draft($id) {
-		global $post;
+	public function create_draft($id) {		
+		$post = get_post($id);
 					
 		$author = wp_get_current_user()->ID;
 		
 		if ( ! $this->post_type_is_supported($post->post_type) ) {
 			// should we add a flash msg here?
-			return $id;
+			return false;
 		}
 
 		// so far so good	
@@ -145,14 +129,19 @@ class Draft_Published_Post {
 		// copy featured image
 		// copy all taxonomies
 		
-		wp_redirect(admin_url('post.php?action=edit&post=' . $draft_id));
-		exit();
+		return $draft_id;
 	}
 	
-	public function publish_draft($post) {		
+	public function route_publish($post) {
 		if ( wp_is_post_revision($post) )
 			return false;
 		
+		$pub_id = $this->publish_draft($post);
+		wp_redirect(admin_url('post.php?action=edit&post=' . $pub_id));
+		exit();
+	}
+	
+	public function publish_draft($post) {				
 		$parent = get_post($post->post_parent);
 		
 		$data = array_merge((array) $parent, (array) $post);
@@ -169,14 +158,13 @@ class Draft_Published_Post {
 		// copy attachments over, too
 		// copy featured image
 		// copy all taxonomies
-		
+				
 		// if everything was successful, we can delete the draft post, true to force hard delete
 		if ( ! $deleted = wp_delete_post($post->ID, true) )
 			// need to pass thru some error message?
 			new DPP_Admin_Notice('zoinks!');
 		
-		wp_redirect(admin_url('post.php?action=edit&post=' . $published_id));
-		exit();
+		return $published_id;
 	}
 	
 	public function deleted_post() {

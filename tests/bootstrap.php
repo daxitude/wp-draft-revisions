@@ -10,14 +10,9 @@
  * Note: Do note change the name of this file. PHPUnit will automatically fire this file when run.
  *
  */
-
-$path = dirname(__FILE__) . '/../../../../wordpress-tests/bootstrap.php';
  
-if (file_exists($path)) {
-        $GLOBALS['wp_tests_options'] = array(
-			'active_plugins' => array( 'draft-published-post/draft-published-post.php' )
-        );
-        require_once $path;
-} else {
-        exit("Couldn't find wordpress-tests/bootstrap.php\n");
-}
+$GLOBALS['wp_tests_options'] = array(
+	'active_plugins' => array( 'draft-revisions/draft-revisions.php' )
+);
+
+require_once dirname(__FILE__) . '/../../../../wordpress-tests/bootstrap.php';

@@ -1,12 +1,12 @@
 <?php
 
-class Draft_Published_Post {
+class Draft_Revisions_Plugin {
 	
-	public static $version = 0.2;
+	public static $version = 0.3;
 	
-	public $status_value = 'apd_draft';
+	public $status_value = 'drp_draft';
 	
-	private static $options_key = 'apd_options';
+	private static $options_key = 'drp_options';
 	private $options;
 	private $_options;
 	
@@ -27,7 +27,7 @@ class Draft_Published_Post {
 		add_action('init', array($this, 'add_post_status'), 2);
 		// does post type have to support revisions?
 		add_action('pre_post_update', array($this, 'route_create'), 1);		
-		add_action('apd_draft_to_publish', array($this, 'route_publish'));
+		add_action('drp_draft_to_publish', array($this, 'route_publish'));
 				
 		// add action to deal with post deletion
 		// add action to deal with post update while a draft is out there?
@@ -39,18 +39,18 @@ class Draft_Published_Post {
 	
 	public function add_post_status() {
 		register_post_status($this->status_value, array(
-			'label' => 'Revision Draft',
+			'label' => 'Draft Revision',
 			'public' => false,
 			'exclude_from_search' => true,
 			'show_in_admin_all_list' => false,
 			'show_in_admin_status_list' => true,
-			'label_count' => _n_noop( 'Drafts of Published <span class="count">(%s)</span>',
-				'Drafts of Published <span class="count">(%s)</span>' )
+			'label_count' => _n_noop( 'Draft Revisions <span class="count">(%s)</span>',
+				'Draft Revisions <span class="count">(%s)</span>' )
 		) );
 	}
 	
 	private function admin_init() {
-		$this->admin = new DPP_Admin(&$this);
+		$this->admin = new DRP_Admin(&$this);
 	}
 	
 	// add support for a post type
@@ -84,7 +84,7 @@ class Draft_Published_Post {
 		// check to see if we are saving a new draft
 		if ( isset($_POST['save']) && $_POST['save'] == self::$draft_text ) {
 			$draft_id = $this->create_draft($id);
-			wp_redirect(admin_url('post.php?action=edit&post=' . $draft_id));
+			wp_redirect( get_edit_post_link($draft_id, '&') );
 			exit();
 
 		} else {
@@ -95,11 +95,11 @@ class Draft_Published_Post {
 	
 	// create a draft of a published post
 	public function create_draft($id) {		
-		$post = get_post($id);
+		$parent = get_post($id);
 					
 		$author = wp_get_current_user()->ID;
 		
-		if ( ! $this->post_type_is_supported($post->post_type) ) {
+		if ( ! $this->post_type_is_supported($parent->post_type) ) {
 			// should we add a flash msg here?
 			return false;
 		}
@@ -108,13 +108,14 @@ class Draft_Published_Post {
 		$data = array(
 			'post_status' => $this->status_value,
 			'post_author' => $author,
-			'post_parent' => $post->ID
+			'post_parent' => $parent->ID,
+			'post_type' => $parent->post_type
 		);
 		
 		// turn $this->post_fields into array with keys
 		$fields = array_fill_keys($this->post_fields, null);
 		// intersect with $post
-		$post_data = array_intersect_key((array) $post, $fields);
+		$post_data = array_intersect_key((array) $parent, $fields);
 		// combine the arrays
 		$data += $post_data;
 		// insert the post
@@ -124,10 +125,16 @@ class Draft_Published_Post {
 		if ( !$draft_id )
 			return false;
 		
-		// also copy all the meta
-		// copy attachments over, too
-		// copy featured image
+		// also copy all the meta. featured images are stored in here so this should
+		// take care of copying the featured image
+		$this->transfer_post_meta($parent->ID, $draft_id);
 		// copy all taxonomies
+		$this->transfer_post_taxonomies($parent->ID, $draft_id);
+		
+		// don't worry about copying attachments here
+		// on draft publish we'll do a merge of all attachments
+				
+		// no xfer of comments, those stay with the original
 		
 		return $draft_id;
 	}
@@ -137,7 +144,7 @@ class Draft_Published_Post {
 			return false;
 		
 		$pub_id = $this->publish_draft($post);
-		wp_redirect(admin_url('post.php?action=edit&post=' . $pub_id));
+		wp_redirect( get_edit_post_link($pub_id, '&') );
 		exit();
 	}
 	
@@ -154,17 +161,73 @@ class Draft_Published_Post {
 		if ( !$published_id )
 			return false;
 		
-		// copy any meta over as well?
-		// copy attachments over, too
-		// copy featured image
+		// copy any meta over as well. should take care of featured image
+		$this->transfer_post_meta($post->ID, $parent->ID, 'update');
 		// copy all taxonomies
+		$this->transfer_post_taxonomies($post->ID, $parent->ID);
+
+		// copy attachments back to the parent
+		$this->transfer_post_attachments($post->ID, $parent->ID);
 				
 		// if everything was successful, we can delete the draft post, true to force hard delete
 		if ( ! $deleted = wp_delete_post($post->ID, true) )
 			// need to pass thru some error message?
-			new DPP_Admin_Notice('zoinks!');
+			new DRP_Admin_Notice('zoinks!');
 		
 		return $published_id;
+	}
+	
+	// @TODO error checking
+	private function transfer_post_meta($from_id, $to_id, $method = 'add') {
+		$all_meta = get_post_custom($from_id);
+
+		foreach ($all_meta as $key => $value) {
+			$method == 'add' ?
+				add_post_meta($to_id, $key, $value[0]) :
+				update_post_meta($to_id, $key, $value[0]);
+		}
+	}
+	
+	// @TODO error checking
+	private function transfer_post_taxonomies($from_id, $to_id) {
+		$taxis = get_object_taxonomies( get_post_type($from_id) );
+
+		foreach ($taxis as $tax) {
+		    $terms = wp_get_object_terms( $from_id, $tax );
+		    $term = array();
+		    foreach ($terms as $t) {
+		        $term[] = $t->slug;
+		    } 
+
+		    wp_set_object_terms( $to_id, $term, $tax, false );
+		}
+	}
+	
+	private function transfer_post_attachments($from_id, $to_id) {
+		$attachments = get_children(
+			array( 'post_parent' => $from_id, 'post_type' => 'attachment', 'numberposts' -1 )
+		);
+		
+		if ( !$attachments ) return;
+		
+		foreach ($attachments as $pic) {
+			$pic->post_parent = $to_id;
+			wp_update_post($pic);
+		}
+	}
+	
+	public function get_all_post_taxonomies($id) {
+		$taxis = get_object_taxonomies( get_post_type($id) );
+		$all = array();
+
+		foreach ($taxis as $tax) {
+			$terms = wp_get_object_terms( $id, $tax );
+			$all[$tax] = array();
+			foreach ($terms as $t) {
+				$all[$tax][] = $t->term_id;
+			}
+		}
+		return $all;
 	}
 	
 	public function deleted_post() {
@@ -236,7 +299,7 @@ class Draft_Published_Post {
 	
 	// autoloader
 	public static function autoloader( $class ) {
-        if ( strpos($class, 'DPP') !== 0 ) {
+        if ( strpos($class, 'DRP') !== 0 ) {
             return;
         }
         $file = dirname(__FILE__) . '/' . str_replace('_', DIRECTORY_SEPARATOR, substr($class, 4)) . '.php';

@@ -1,9 +1,9 @@
 <?php
 
-class DPP_Admin_Notice {
+class DRP_Admin_Notice {
 	
 	// type should be updated (yellow) or error (red)
-	public function __construct($notice, $type) {
+	public function __construct($notice, $type = 'updated') {
 		$this->notice = $notice;
 		$this->type = $type;
 		add_action('admin_notices', array($this, 'print_notice'));

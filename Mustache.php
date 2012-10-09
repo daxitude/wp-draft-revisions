@@ -3,7 +3,7 @@
 /*
  * singleton-ish class for passing data to Mustache to render
  */
-abstract class DPP_Mustache {
+abstract class DRP_Mustache {
 
 	private static $engine;
 	private static $dir;
@@ -14,7 +14,7 @@ abstract class DPP_Mustache {
 		
 		Mustache_Autoloader::register();
 		
-		self::$dir = dirname(__FILE__) . '/templates';
+		self::$dir = dirname(__FILE__) . '/Admin/templates';
 		$m_opts = array('extension' => 'html');
 		
 		self::$engine = new Mustache_Engine(
@@ -51,4 +51,4 @@ abstract class DPP_Mustache {
 
 }
 
-DPP_Mustache::init();
+DRP_Mustache::init();

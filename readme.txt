@@ -1,4 +1,4 @@
-=== Drafts of Published Posts ===
+=== Drafts of Revisions ===
 Contributors: daxitude
 Tags: @TODO
 Requires at least: 3.4
@@ -11,7 +11,17 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-@TODO
+Create drafts of WordPress posts/pages/CPTs even after they've been published. And when you're ready, merge the changes back into the original published post.
+
+= Features =
+
+* Create non-public drafts of already published posts
+* Multiple drafts per published post
+* Merge the changes back into the published post when you're ready
+* Uses the published posts's custom post type, so metas, taxonomies, etc all are available in the draft admin screens and can even be modified and merged back into the original post
+* Do a post diff similar to WP's default revision.php?action=diff with added ability to compare changes in post meta and taxonomies
+* Warns you when the original post has been updated ahead of a draft
+
 
 == Installation ==
 
@@ -19,12 +29,14 @@ See [Installing Plugins](http://codex.wordpress.org/Managing_Plugins#Installing_
 
 1. Download the zip from here or from [Github](http://github.com/daxitude/@TODO) and drop it into your site's wp-content/plugins directory.
 1. Navigate to your site's Admin->Plugins section (wp-admin/plugins.php) and activate the plugin.
-1. @TODO
+1. Navigate to Settings->Draft Revisions to set up the permitted post types
 
 == Screenshots ==
 
-1. Editing a Page
+1. Editing a draft
+1. Viewing the original page
+1. Comparing changes
 
 == Todo ==
-@TODO
+* fix the preview
 

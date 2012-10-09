@@ -3,11 +3,11 @@
  * Core Tests
  */
 
-class DPP_Test extends WP_UnitTestCase {
+class DRP_Test extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();		
-		$this->instance = new Draft_Published_Post();
+		$this->instance = new Draft_Revisions_Plugin();
 	}
 	
 	function rstr() {
@@ -52,8 +52,12 @@ class DPP_Test extends WP_UnitTestCase {
 		 
 	}
 	
+	protected function assertArraysEqual($expected, $actual) {
+	    $this->assertTrue(count($expected) == count(array_intersect($expected, $actual)));
+	}
+	
 	function test_plugin_activated() {
-		$this->assertTrue( class_exists( 'Draft_Published_post' ) );
+		$this->assertTrue( class_exists( 'Draft_Revisions_Plugin' ) );
 	}
 	
 	function test_post_status_exists() {
@@ -108,6 +112,61 @@ class DPP_Test extends WP_UnitTestCase {
 		
 		$this->assertNull($test_draft);
 		$this->assertEquals( $test_published->post_content, $new_content );
+	}
+	
+	function test_metas_are_copied() {
+		$parent = $this->create_post();	
+		$draft = $this->create_draft($parent->ID);
+		
+		$parent_meta = get_post_custom($parent->ID);
+		$draft_meta = get_post_custom($draft->ID);
+			
+		$this->assertEquals($parent_meta, $draft_meta);
+	}
+	
+	function test_taxonomies_are_copied_to_draft() {
+		$parent = $this->create_post();
+		
+		$cat = wp_insert_term('some_category', 'category');
+		$tag = wp_insert_term('some_tag', 'post_tag');
+		
+		wp_set_object_terms($parent->ID, $cat['term_id'], 'category');
+		wp_set_object_terms($parent->ID, $tag['term_id'], 'post_tag');
+		
+		$draft = $this->create_draft($parent->ID);
+		
+		$parent_tax = $this->instance->get_all_post_taxonomies($parent->ID);
+		$draft_tax = $this->instance->get_all_post_taxonomies($draft->ID);
+		
+		$this->assertEquals($parent_tax, $draft_tax);
+	}
+	
+	function test_taxonomies_are_copied_back_to_parent() {
+		$parent = $this->create_post();
+		
+		$cat1 = wp_insert_term('some_category', 'category');
+		$tag1 = wp_insert_term('some_tag', 'post_tag');
+		
+		wp_set_object_terms($parent->ID, $cat1['term_id'], 'category');
+		wp_set_object_terms($parent->ID, $tag1['term_id'], 'post_tag');
+		
+		$cat2 = wp_insert_term('some_category_2', 'category');
+		$tag2 = wp_insert_term('some_tag_2', 'post_tag');
+		
+		$draft = $this->create_draft($parent->ID);
+		
+		wp_set_object_terms($draft->ID, $cat2['term_id'], 'category');
+		wp_set_object_terms($draft->ID, $tag2['term_id'], 'post_tag');
+		
+		$parent_tax_old = $this->instance->get_all_post_taxonomies($parent->ID);
+		$draft_tax = $this->instance->get_all_post_taxonomies($draft->ID);
+
+		$this->instance->publish_draft($draft);
+		
+		$parent_tax_new = $this->instance->get_all_post_taxonomies($parent->ID);
+		
+		$this->assertEquals($parent_tax_new, $draft_tax);
+		$this->assertNotEquals($parent_tax_old, $draft_tax);
 	}
 	
 	function test_has_draft() {

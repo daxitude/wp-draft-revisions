@@ -1,13 +1,13 @@
 === Drafts of Revisions ===
 Contributors: daxitude
-Tags: @TODO
+Tags: status, post status, workflow, Revision
 Requires at least: 3.4
 Tested up to: 3.4.2
-Stable tag: @TODO
+Stable tag: 0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-@TODO
+Create drafts of WordPress posts/pages/CPTs even after they've been published
 
 == Description ==
 
@@ -28,7 +28,7 @@ Create drafts of WordPress posts/pages/CPTs even after they've been published. A
 
 See [Installing Plugins](http://codex.wordpress.org/Managing_Plugins#Installing_Plugins).
 
-1. Download the zip from here or from [Github](http://github.com/daxitude/@TODO) and drop it into your site's wp-content/plugins directory.
+1. Download the zip from here or from [Github](http://github.com/daxitude/wp-draft-revisions) and drop it into your site's wp-content/plugins directory.
 1. Navigate to your site's Admin->Plugins section (wp-admin/plugins.php) and activate the plugin.
 1. Navigate to Settings->Draft Revisions to set up the permitted post types
 

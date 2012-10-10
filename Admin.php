@@ -1,12 +1,18 @@
 <?php
-
+/*
+ * handles actions in the wp-admin
+ */
 class DRP_Admin {
+	
+	private $parent;
+	private $notices;
 	
 	public function __construct(&$parent) {
 		global $pagenow;
-		
-		$this->parent = &$parent;
-		
+		// set a reference to the parent (core.php) for access to its methods
+		$this->parent = &$parent;		
+		// flash-y wp admin notices
+		$this->notices = new DRP_Admin_Notice();
 		// check to see if we want to display any admin notices on post.php
 		add_action('admin_head', array($this, 'maybe_render_admin_notices'));
 		// admin menu page to set allowable post types
@@ -17,61 +23,20 @@ class DRP_Admin {
 		if ('edit.php' == $pagenow)
 			add_action('admin_print_scripts', array($this, 'add_js'));
 		
-//		add_action('admin_menu', array($this, 'add_diff_page'));
-		add_action('load-revision.php', array($this, 'drp_revision'));
-				
-		// is_preview()
-		add_filter('request', array($this, 'process_preview'));
-//		add_filter('preview_post_link', array($this, 'preview'));
+		// custom revision page and method
+		add_action('load-revision.php', array($this, 'drp_revision'));		
+		// add action to deal with post deletion
+		add_action('publish_to_trash', array($this, 'post_deletion'));
 	}
 	
-	public function preview() {
-//		return 'http://dev.pmatech/?p=3156&preview=true';
-	}
-	
-	public function process_preview($query_vars) {
-		print_r($query_vars);
-		exit();
-		
-		
-//		print_r(func_get_args());
-//		return 'http://dev.pmatech/?p=3156&preview=true';
-//		exit();
-//		$post = get_post($query->post_parent);
-//		$post->post_status = 'publish';
-//		wp_cache_set($post->ID, $post, 'posts');
-		
-//		print_r('<script>console.log('.var_dump($query->is_preview).')</script>');
-		
-/*		
-//		print_r($query);
-		$query->query['post_status'] = 'draft';
-		if (
-//			$query->is_main_query() &&
-//			$query->is_preview() &&
-			$query->is_singular()
-//			$query->get( '_ppp' )
-		)	
-			add_filter( 'posts_results', array( $this, 'stuff' ) ); // 10,2
-*/
-	}
-	
-	public function stuff($posts) {
-//		foreach ($posts as $post) {
-//			unset($post->post_content);
-//		}
-//		print_r($posts);
-//		remove_filter( 'posts_results', array( $this, 'stuff' ) );
-//		$posts[0]->post_status = 'draft';
-		
-//		return $posts;
-	}
-	
+	// add some neccessarily evil js to post.php and edit.php to help manage form data and submit actions
 	public function add_js() {
 		wp_register_script( 'drpjs', plugins_url( '/assets/drp.dev.js', __FILE__ ), '', '1.0', 'true' );
 		wp_enqueue_script( 'drpjs' );
 	}
 	
+	// load-revision.php callback to create our own custom diff page
+	// mostly follows wp's revision.php
 	public function drp_revision() {
 		if ( $_GET['action'] != 'drp_diff' ) return;
 		
@@ -95,20 +60,18 @@ class DRP_Admin {
 			$parent = $right;
 			$draft = $left;
 		} else {
-			new DRP_Admin_Notice('<strong>Whoops!</strong> Those posts aren\'t related.', 'error');
+			$this->notices->add(array(
+				'text' => '<strong>Whoops!</strong> Those posts aren\'t related.',
+				'type' => 'error'
+			));
 			wp_redirect(get_edit_post_link($left->ID));
 			exit();
 		}
-
-		// do some redirect if they are the same?
 		
 		// do the diff
 		$differ = new DRP_Admin_Diff(&$parent, &$draft);
 		$rev_fields = $differ->diff();
 		
-		// This is so that the correct "Edit" menu item is selected.
-		$parent_file = $submenu_file = 'edit.php?post_type=' . $parent->post_type;
-
 		require_once( './admin-header.php' );
 		
 		echo DRP_Mustache::render('diff', array(
@@ -118,52 +81,69 @@ class DRP_Admin {
 		));
 		
 		require_once( './admin-footer.php' );
+		// make sure the rest of default revision diff action doesn't happen
 		exit();
 	}
 	
+	// callback to post trashing action to warn user about active drafts
+	public function post_deletion($post) {
+		if ( ! $this->parent->has_draft($post->ID) ) return;
+		
+		$this->notices->add(array(
+			'text' => DRP_Mustache::render('notice/_post_deletion', array('title' => $post->post_title)),
+			'type' => 'error'
+		));
+	}
+	
+	// check post.php to see if we want to render some admin notices
 	public function maybe_render_admin_notices() {
 		global $post;
 		global $pagenow;
 		
 		if ( 'post.php' != $pagenow ) return;
-		
+
+		// if it's a parent, warn the user about editing parents with drafts
 		if ( $this->parent->has_draft($post->ID) ) {
-			new DRP_Admin_Notice(DRP_Mustache::render('notice_active_drafts'), 'error');
-		}
-		else if ( $this->parent->is_draft($post->ID) ) {
+			$this->notices->now(array(
+				'text' => DRP_Mustache::render('notice/_active_drafts'), 
+				'type' => 'error'
+			));
+
+		// if it's a draft, check to see if the parent's been updated more recently
+		} else if ( $this->parent->is_draft($post->ID) ) {
 			$parent = get_post($post->post_parent);
-			$parent_mod = $parent->post_modified;
-			$draft_mod = $post->post_modified;
 			
-			if ( $parent_mod > $draft_mod ) {
-				new DRP_Admin_Notice( DRP_Mustache::render('notice_parent_post_updated', array(
-					'post_type' => $parent->post_type,
-					'right' => $parent->ID,
-					'left' => $post->ID
-				)), 'updated');
+			if ( $parent->post_modified > $post->post_modified ) {
+				$this->notices->now(array(
+					'text' => DRP_Mustache::render('notice/_parent_post_updated', array(
+						'post_type' => $parent->post_type,
+						'right' => $parent->ID,
+						'left' => $post->ID
+					)),
+					'type' => 'updated'
+				));
 			}
 		}
 	}
 	
+	// callback to add the options page to Setttings menu in wp-admin
 	public function options_page() {
 		add_options_page(
 			'Drafts of Revisions Options',
-			'Draft Revisions',
+			'Drafts of Revisions',
 			'manage_options',
 			'drp_options',
 			array($this, 'render_options_page')
-		);
-		
+		);		
 	}
 	
-	public function render_options_page() {
-		
-		if ($_POST) {
+	// render the options page. also handles updates to the plugin options via a POST request
+	public function render_options_page() {		
+		if ($_POST)
 			$this->parent->update_option($_POST);
-		}
 		
 		$all_types = get_post_types();
-		// remove attachment, revision, and nav_menu_item from the list of options
+		// remove attachment, revision, and nav_menu_item from the list of post type options
 		$all_types = array_filter(
 			$all_types,
 			create_function(
@@ -183,22 +163,17 @@ class DRP_Admin {
 		));
 	}
 
-	// @todo figure out what post statuses should be allowed to transition to a status of drp_draft
+	// callback for add_meta_boxes to add a meta box to edit.php
 	public function meta_boxes() {
 		global $post;
-		
-		if (
-			!$this->parent->post_type_is_supported($post->post_type) ||
-			!in_array($post->post_status, array('publish', 'private', $this->parent->status_value))
-		)
-			return;
-		
+		// if post is a draft, render the draft meta box
 		if ( $this->parent->is_draft($post->ID) ) {
-			$tpl = 'render_is_draft_meta_box';
+			$tpl = 'render_draft_meta_box';
 			add_action('admin_print_scripts', array($this, 'add_js'));
-		}
-		else {
-			$tpl = 'render_drafts_meta_box';
+		
+		// if post is a parent, render the parent meta box
+		} else if ($this->parent->can_have_drafts($post)) {
+			$tpl = 'render_parent_meta_box';
 		}
 		
 		add_meta_box(
@@ -211,21 +186,21 @@ class DRP_Admin {
 		);		
 	}
 	
-	public function render_is_draft_meta_box($post) {
+	// render a meta box for a draft post's edit.php
+	public function render_draft_meta_box($post) {
 		$parent = get_post($post->post_parent);
 		$parent->admin_link = get_edit_post_link($parent->ID, '&');
-		echo DRP_Mustache::render('adraft_meta_box', array(
+		echo DRP_Mustache::render('meta_box/_draft', array(
 			'parent' => (array) $parent,
 			'draft' => $post
 		));
 	}
 	
-	public function render_drafts_meta_box($post) {
+	// render a meta box for a parent post's edit.php
+	public function render_parent_meta_box($post) {
 		$kids = get_children(array(
-//			'list_of_drafts' => true,
 			'post_parent' => $post->ID,
 			'post_status' => $this->parent->status_value
-//			'post__in' => $this->parent->get_draft_ids()
 		));
 		
 		// turn kids into a basic array and replace author id with author nicename
@@ -237,25 +212,7 @@ class DRP_Admin {
 			),
 			$kids
 		);
-		echo DRP_Mustache::render('drafts_meta_box', array('kids' => $kids));
+		echo DRP_Mustache::render('meta_box/_parent', array('kids' => $kids));
 	}
-
-
-/*	
-	public function add_diff_page() {
-		add_submenu_page(
-			'edit.php?post_type=post',
-			'Post Diff',
-			'Diff',
-			'edit_posts',
-			'drp_diff',
-			array($this, 'render_diff_page')
-		);		
-	}
-	
-	public function render_diff_page() {
-		echo 'hello world';
-	}
-*/	
 	
 }

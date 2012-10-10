@@ -52,10 +52,6 @@ class DRP_Test extends WP_UnitTestCase {
 		 
 	}
 	
-	protected function assertArraysEqual($expected, $actual) {
-	    $this->assertTrue(count($expected) == count(array_intersect($expected, $actual)));
-	}
-	
 	function test_plugin_activated() {
 		$this->assertTrue( class_exists( 'Draft_Revisions_Plugin' ) );
 	}
@@ -200,6 +196,46 @@ class DRP_Test extends WP_UnitTestCase {
 		// the default installed post is in the db
 		$this->assertEquals( count($test_posts), $num + 1 );
 		
+	}
+	
+	function test_attachments_get_transferred() {
+		$parent = $this->create_post();
+		
+		$attachment_p = wp_insert_attachment(array(
+			'post_title' => 'parent title', 
+			'post_content' => 'parent content', 
+			'post_status' => 'inherit',
+			'post_mime_type' => 'image/png'
+		), wp_upload_dir() . 'parent.png', $parent->ID);
+		
+		$draft = $this->create_draft($parent->ID);
+		
+		$attachment_d = wp_insert_attachment(array(
+			'post_title' => 'draft title', 
+			'post_content' => 'draft content', 
+			'post_status' => 'inherit',
+			'post_mime_type' => 'image/png'
+		), wp_upload_dir() . 'draft.png', $draft->ID);
+		
+		$this->instance->publish_draft($draft);
+		
+		$attachments = get_posts(array('post_type' => 'attachment', 'post_parent' => $parent->ID));
+		
+		$this->assertEquals( count($attachments), 2 );
+	}
+	
+	function test_drafts_deleted_on_parent_deletion() {
+		$parent = $this->create_post();	
+		$draft1 = $this->create_draft($parent->ID);
+		$draft2 = $this->create_draft($parent->ID);
+		
+		wp_delete_post($parent->ID, true);
+		
+		$test_one = get_post($draft->ID);
+		$test_many = get_posts(array('post_parent' => $parent->ID));
+		
+		$this->assertNull($test_one);		
+		$this->assertEmpty($test_many);		
 	}
 	
 	

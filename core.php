@@ -1,47 +1,52 @@
 <?php
-
+/*
+ * Main plugin class
+ */
 class Draft_Revisions_Plugin {
-	
-	public static $version = 0.3;
-	
+	// plugin version number
+	public static $version = 0.5;
+	// custom status value that gets registered and assigned to draft posts
 	public $status_value = 'drp_draft';
-	
+	// key for wp_options to store plugin options
 	private static $options_key = 'drp_options';
+	// array of permitted options
 	private $options;
+	// internal array for storing retrieved options values
 	private $_options;
-	
-	public static $draft_text = 'Save a Draft';
-	
-	// the fields to copy back and forth
+	// text used on the button on post.php to initiate creation of a draft
+	public static $draft_text = 'Save a Draft';	
+	// the fields to copy from published post to new draft
 	private $post_fields = array('post_title', 'post_content', 'post_excerpt');
+
 	
 	public function __construct() {
+		// default options
 		$this->options = array(
 			'version' => self::$version,
 			'post_types' => array('post', 'page')
 		);
-		
-		$this->install_or_update();
-		
+		// install if new, update if version has changed
+		$this->install_or_update();		
 		// register the custom post status
 		add_action('init', array($this, 'add_post_status'), 2);
-		// does post type have to support revisions?
+		// hook into pre_post_update to create new draft
 		add_action('pre_post_update', array($this, 'route_create'), 1);		
+		// hook into post status transition to publish a draft post
 		add_action('drp_draft_to_publish', array($this, 'route_publish'));
-				
-		// add action to deal with post deletion
-		// add action to deal with post update while a draft is out there?
+		// delete all drafts when a parent gets hard deleted
+		add_action('deleted_post', array($this, 'parent_deleted'));
 		
 		if (is_admin())
-			$this->admin_init();
-		
+			$this->admin_init();		
 	}
 	
+	// register the post status
+	// @protected - see wp-includes/query.php line 2684. this enables previews. Ln2659 posts_results
 	public function add_post_status() {
 		register_post_status($this->status_value, array(
 			'label' => 'Draft Revision',
 			'public' => false,
-			'protected' => true, // see wp-includes/query.php line 2684. this enables previews. Ln2659 posts_results
+			'protected' => true,
 			'exclude_from_search' => true,
 			'show_in_admin_all_list' => false,
 			'show_in_admin_status_list' => true,
@@ -50,6 +55,7 @@ class Draft_Revisions_Plugin {
 		) );
 	}
 	
+	// initialize the admin class
 	private function admin_init() {
 		$this->admin = new DRP_Admin(&$this);
 	}
@@ -61,7 +67,7 @@ class Draft_Revisions_Plugin {
 		$this->update_option(array( 'post_types' => $types ));
 	}
 	
-	// gets the post types allowed for drafts as defined by the user
+	// gets the post types allowed for drafts as defined by the user in the options screen
 	public function get_permitted_post_types() {
 		$types = $this->get_option('post_types');
 		return $types;
@@ -73,7 +79,7 @@ class Draft_Revisions_Plugin {
 		return in_array($post_type, $types);
 	}
 
-	// 
+	// routes a request to create a new draft
 	public function route_create($id) {
 		global $post;	
 		// don't do anything if an autosave
@@ -95,15 +101,13 @@ class Draft_Revisions_Plugin {
 	}
 	
 	// create a draft of a published post
-	public function create_draft($id) {		
+	public function create_draft($id) {
 		$parent = get_post($id);
 					
 		$author = wp_get_current_user()->ID;
 		
-		if ( ! $this->post_type_is_supported($parent->post_type) ) {
-			// should we add a flash msg here?
+		if ( ! $this->can_have_drafts($parent) )
 			return false;
-		}
 
 		// so far so good	
 		$data = array(
@@ -140,6 +144,7 @@ class Draft_Revisions_Plugin {
 		return $draft_id;
 	}
 	
+	// route a request to publish a draft
 	public function route_publish($post) {
 		if ( wp_is_post_revision($post) )
 			return false;
@@ -149,7 +154,9 @@ class Draft_Revisions_Plugin {
 		exit();
 	}
 	
-	public function publish_draft($post) {				
+	// publishes a draft by merging changes back into the parent post and deleting the
+	// draft post (hard delete)
+	public function publish_draft($post) {
 		$parent = get_post($post->post_parent);
 		
 		$data = array_merge((array) $parent, (array) $post);
@@ -173,11 +180,11 @@ class Draft_Revisions_Plugin {
 		// if everything was successful, we can delete the draft post, true to force hard delete
 		if ( ! $deleted = wp_delete_post($post->ID, true) )
 			// need to pass thru some error message?
-			new DRP_Admin_Notice('zoinks!');
 		
 		return $published_id;
 	}
 	
+	// transfers post meta from one post to another
 	// @TODO error checking
 	private function transfer_post_meta($from_id, $to_id, $method = 'add') {
 		$all_meta = get_post_custom($from_id);
@@ -189,6 +196,7 @@ class Draft_Revisions_Plugin {
 		}
 	}
 	
+	// transfers post taxonomies from one post to another
 	// @TODO error checking
 	private function transfer_post_taxonomies($from_id, $to_id) {
 		$taxis = get_object_taxonomies( get_post_type($from_id) );
@@ -204,6 +212,9 @@ class Draft_Revisions_Plugin {
 		}
 	}
 	
+	// transfers post attachments from one post to another
+	// this is only called on a publish action to copy any new attachments
+	// from the draft back to the parent
 	private function transfer_post_attachments($from_id, $to_id) {
 		$attachments = get_children(
 			array( 'post_parent' => $from_id, 'post_type' => 'attachment', 'numberposts' -1 )
@@ -217,6 +228,7 @@ class Draft_Revisions_Plugin {
 		}
 	}
 	
+	// gets all taxonomies associated with a given post type
 	public function get_all_post_taxonomies($id) {
 		$taxis = get_object_taxonomies( get_post_type($id) );
 		$all = array();
@@ -231,10 +243,12 @@ class Draft_Revisions_Plugin {
 		return $all;
 	}
 	
-	public function deleted_post() {
-		
+	public function can_have_drafts($parent) {
+		return $this->post_type_is_supported($parent->post_type) &&
+			in_array($parent->post_status, array('publish', 'private'));
 	}
 	
+	// conditional check to see if a post id has drafts
 	public function has_draft($id) {
 		$kids = get_children(array(
 			'post_parent' => $id,
@@ -244,12 +258,23 @@ class Draft_Revisions_Plugin {
 		return !!$kids;
 	}
 	
+	// conditional check to see if a post id is a draft
 	public function is_draft($id) {
 		return get_post($id)->post_status == $this->status_value;
 	}
 	
-	private function meta_has_changed() {
+	// post deletion callback to delete any drafts when a parent is (hard) deleted
+	// Admin.php provides an admin notice when a parent is moved to the trash
+	public function parent_deleted($parent_id) {
+		if ( !$this->has_draft($parent_id) ) return;
 		
+		$kids = get_children(array(
+			'post_parent' => $parent_id,
+			'post_status' => $this->status_value
+		));
+		foreach ($kids as $kid) {
+			wp_delete_post($kid->ID, true); // true to force delete
+		}
 	}
 
 	// add an option to wp_options for the first time
@@ -287,18 +312,19 @@ class Draft_Revisions_Plugin {
 		$saved_ver = $this->get_option('version');
 		if (!$saved_ver) {
 			$this->add_option(self::$options_key, $this->options);
-		}
-		else if ($saved_ver !== self::$version) {
+
+		} else if ($saved_ver !== self::$version) {
 			// do some update stuff here
 			$this->update_option(array('version' => self::$version));
 		}			
 	}
 	
+	// uninstall callback
 	public static function uninstall() {
 		delete_option(self::$options_key);
 	}
 	
-	// autoloader
+	// autoloader for DRP-prefixed classes
 	public static function autoloader( $class ) {
         if ( strpos($class, 'DRP') !== 0 ) {
             return;

@@ -21,6 +21,7 @@ Create drafts of WordPress posts/pages/CPTs even after they've been published. A
 * Uses the published posts's custom post type, so metas, taxonomies, etc all are available in the draft admin screens and can even be modified and merged back into the original post
 * Do a post diff similar to WP's default revision.php?action=diff with added ability to compare changes in post meta and taxonomies
 * Warns you when the original post has been updated ahead of a draft
+* Allows you to preview drafts in the post/page/CPT's natural template
 
 
 == Installation ==
@@ -38,5 +39,4 @@ See [Installing Plugins](http://codex.wordpress.org/Managing_Plugins#Installing_
 1. Comparing changes
 
 == Todo ==
-* fix the preview
 

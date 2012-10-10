@@ -41,6 +41,7 @@ class Draft_Revisions_Plugin {
 		register_post_status($this->status_value, array(
 			'label' => 'Draft Revision',
 			'public' => false,
+			'protected' => true, // see wp-includes/query.php line 2684. this enables previews. Ln2659 posts_results
 			'exclude_from_search' => true,
 			'show_in_admin_all_list' => false,
 			'show_in_admin_status_list' => true,

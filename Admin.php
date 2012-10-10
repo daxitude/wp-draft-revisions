@@ -21,26 +21,50 @@ class DRP_Admin {
 		add_action('load-revision.php', array($this, 'drp_revision'));
 				
 		// is_preview()
-//		add_filter('pre_get_posts', array($this, 'process_preview'));
+		add_filter('request', array($this, 'process_preview'));
+//		add_filter('preview_post_link', array($this, 'preview'));
 	}
 	
-	public function process_preview($query) {
+	public function preview() {
+//		return 'http://dev.pmatech/?p=3156&preview=true';
+	}
+	
+	public function process_preview($query_vars) {
+		print_r($query_vars);
+		exit();
+		
+		
+//		print_r(func_get_args());
+//		return 'http://dev.pmatech/?p=3156&preview=true';
+//		exit();
+//		$post = get_post($query->post_parent);
+//		$post->post_status = 'publish';
+//		wp_cache_set($post->ID, $post, 'posts');
+		
+//		print_r('<script>console.log('.var_dump($query->is_preview).')</script>');
+		
+/*		
 //		print_r($query);
+		$query->query['post_status'] = 'draft';
 		if (
 //			$query->is_main_query() &&
 //			$query->is_preview() &&
 			$query->is_singular()
 //			$query->get( '_ppp' )
-		)
+		)	
 			add_filter( 'posts_results', array( $this, 'stuff' ) ); // 10,2
+*/
 	}
 	
 	public function stuff($posts) {
+//		foreach ($posts as $post) {
+//			unset($post->post_content);
+//		}
 //		print_r($posts);
-		remove_filter( 'posts_results', array( __CLASS__, 'stuff' ) );
-		$posts[0]->post_status = 'publish';
+//		remove_filter( 'posts_results', array( $this, 'stuff' ) );
+//		$posts[0]->post_status = 'draft';
 		
-		return $posts;
+//		return $posts;
 	}
 	
 	public function add_js() {

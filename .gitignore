@@ -15,3 +15,4 @@
 /tmp
 *.tmproj
 *.svn
+tests/test_web.php

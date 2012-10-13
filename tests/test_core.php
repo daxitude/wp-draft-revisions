@@ -8,6 +8,7 @@ class DPR_Test extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();		
 		$this->instance = new Draft_Post_Revisions();
+		$this->drafter = &$this->instance->drafter;
 	}
 	
 	function rstr() {
@@ -33,7 +34,7 @@ class DPR_Test extends WP_UnitTestCase {
 	}
 	
 	function create_draft($id) {
-		$draft_id = $this->instance->create_draft($id);
+		$draft_id = $this->drafter->create_draft($id);
 		return get_post($draft_id);
 	}
 	
@@ -58,7 +59,7 @@ class DPR_Test extends WP_UnitTestCase {
 	
 	function test_post_status_exists() {
 		$all = get_post_stati();
-		$this->assertContains($this->instance->status_value, $all);
+		$this->assertContains($this->drafter->get_status_val(), $all);
 	}
 	
 	function test_registered_post_types() {
@@ -69,17 +70,17 @@ class DPR_Test extends WP_UnitTestCase {
 	}
 	
 	function test_adding_post_type_support() {
-		$this->instance->add_post_type_support('foo');
+		$this->drafter->add_post_type_support('foo');
 		$types = $this->instance->get_option('post_types');		
 		$this->assertContains( 'foo', $types );
-		$this->assertTrue( $this->instance->post_type_is_supported('foo') );
+		$this->assertTrue( $this->drafter->post_type_is_supported('foo') );
 	}
 	
 	function test_draft_is_created() {
 		$parent = $this->create_post();	
 		$draft = $this->create_draft($parent->ID);
 		
-		$this->assertEquals( $draft->post_status, $this->instance->status_value );
+		$this->assertEquals( $draft->post_status, $this->drafter->get_status_val() );
 		$this->assertEquals( $parent->post_title, $draft->post_title );
 		$this->assertEquals( $parent->ID, $draft->post_parent );
 	}
@@ -101,7 +102,7 @@ class DPR_Test extends WP_UnitTestCase {
 
 		$draft = get_post($draft->ID);
 		
-		$this->instance->publish_draft($draft);
+		$this->drafter->publish_draft($draft);
 		
 		$test_draft = get_post($draft_id);
 		$test_published = get_post($parent->ID);
@@ -131,8 +132,8 @@ class DPR_Test extends WP_UnitTestCase {
 		
 		$draft = $this->create_draft($parent->ID);
 		
-		$parent_tax = $this->instance->get_all_post_taxonomies($parent->ID);
-		$draft_tax = $this->instance->get_all_post_taxonomies($draft->ID);
+		$parent_tax = $this->drafter->get_all_post_taxonomies($parent->ID);
+		$draft_tax = $this->drafter->get_all_post_taxonomies($draft->ID);
 		
 		$this->assertEquals($parent_tax, $draft_tax);
 	}
@@ -154,12 +155,12 @@ class DPR_Test extends WP_UnitTestCase {
 		wp_set_object_terms($draft->ID, $cat2['term_id'], 'category');
 		wp_set_object_terms($draft->ID, $tag2['term_id'], 'post_tag');
 		
-		$parent_tax_old = $this->instance->get_all_post_taxonomies($parent->ID);
-		$draft_tax = $this->instance->get_all_post_taxonomies($draft->ID);
+		$parent_tax_old = $this->drafter->get_all_post_taxonomies($parent->ID);
+		$draft_tax = $this->drafter->get_all_post_taxonomies($draft->ID);
 
-		$this->instance->publish_draft($draft);
+		$this->drafter->publish_draft($draft);
 		
-		$parent_tax_new = $this->instance->get_all_post_taxonomies($parent->ID);
+		$parent_tax_new = $this->drafter->get_all_post_taxonomies($parent->ID);
 		
 		$this->assertEquals($parent_tax_new, $draft_tax);
 		$this->assertNotEquals($parent_tax_old, $draft_tax);
@@ -169,14 +170,14 @@ class DPR_Test extends WP_UnitTestCase {
 		$parent = $this->create_post();	
 		$draft = $this->create_draft($parent->ID);
 		
-		$this->assertTrue( $this->instance->has_draft($parent->ID) );
+		$this->assertTrue( $this->drafter->has_draft($parent->ID) );
 	}
 	
 	function test_is_draft() {
 		$parent = $this->create_post();	
 		$draft = $this->create_draft($parent->ID);
 		
-		$this->assertTrue( $this->instance->is_draft($draft->ID) );
+		$this->assertTrue( $this->drafter->is_draft($draft->ID) );
 	}
 	
 	function test_drafts_not_public() {
@@ -217,7 +218,7 @@ class DPR_Test extends WP_UnitTestCase {
 			'post_mime_type' => 'image/png'
 		), wp_upload_dir() . 'draft.png', $draft->ID);
 		
-		$this->instance->publish_draft($draft);
+		$this->drafter->publish_draft($draft);
 		
 		$attachments = get_posts(array('post_type' => 'attachment', 'post_parent' => $parent->ID));
 		

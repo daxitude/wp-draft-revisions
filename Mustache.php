@@ -3,7 +3,7 @@
 /*
  * singleton-ish class for passing data to Mustache to render
  */
-abstract class DRP_Mustache {
+abstract class DPR_Mustache {
 
 	private static $engine;
 	private static $dir;
@@ -51,4 +51,4 @@ abstract class DRP_Mustache {
 
 }
 
-DRP_Mustache::init();
+DPR_Mustache::init();

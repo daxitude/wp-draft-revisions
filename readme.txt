@@ -1,4 +1,4 @@
-=== Drafts of Revisions ===
+=== Drafts of Post Revisions ===
 Contributors: daxitude
 Tags: status, post status, workflow, Revision
 Requires at least: 3.4
@@ -18,8 +18,8 @@ Create drafts of WordPress posts/pages/CPTs even after they've been published. A
 * Create non-public drafts of already published posts
 * Multiple drafts per published post
 * Merge the changes back into the published post when you're ready
-* Uses the published posts's custom post type, so metas, taxonomies, etc all are available in the draft admin screens and can even be modified and merged back into the original post
-* Do a post diff similar to WP's default revision.php?action=diff with added ability to compare changes in post meta and taxonomies
+* Uses the published posts's original post type, so metas, taxonomies, etc all are available in admin screens and can even be modified and merged back into the original post
+* Perform a post diff similar to WP's default revision.php?action=diff with added ability to compare changes in post meta and taxonomies
 * Warns you when the original post has been updated ahead of a draft
 * Allows you to preview drafts in the post/page/CPT's natural template
 

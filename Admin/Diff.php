@@ -1,6 +1,8 @@
 <?php
-
-class DRP_Admin_Diff {
+/*
+ * performs a diff between 2 posts including on taxonomies and meta
+ */
+class DPR_Admin_Diff {
 	
 	private $left;
 	private $right;
@@ -20,6 +22,7 @@ class DRP_Admin_Diff {
 		add_filter('_wp_post_revision_fields', array($this, 'add_rev_fields'));
 	}
 	
+	// setup post meta to be diffed
 	private function setup_post_meta($post) {
 		$meta = get_post_custom($post->ID);
 		
@@ -29,7 +32,8 @@ class DRP_Admin_Diff {
 			$this->fields_to_add[$key] = $key;
 		}
 	}
-		
+	
+	// setup post taxonomies to be diffed
 	private function setup_post_taxonomies($post) {
 		$taxis = get_object_taxonomies( get_post_type($post->ID) );
 		$all = array();
@@ -42,11 +46,13 @@ class DRP_Admin_Diff {
 		}
 	}
 	
+	// callback to add fields to diff. will be returned on call to _wp_post_revision_fields()
 	public function add_rev_fields($fields) {
 		$fields += $this->fields_to_add;
 		return $fields;
 	}
 	
+	// follows the core functionality in wp's native diff method
 	public function diff() {
 		// make sure the keys are set on $left and $right so we don't get any undefined errors
 		$field_keys = array_fill_keys($this->fields_to_add, null);

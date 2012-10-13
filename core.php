@@ -1,84 +1,73 @@
 <?php
 /*
  * Main plugin class
+ * handles actions in the wp-admin
  */
-class Draft_Revisions_Plugin {
+class Draft_Post_Revisions {
+	
 	// plugin version number
 	public static $version = 0.5;
-	// custom status value that gets registered and assigned to draft posts
-	public $status_value = 'drp_draft';
 	// key for wp_options to store plugin options
-	private static $options_key = 'drp_options';
+	private static $options_key = 'dpr_options';
 	// array of permitted options
 	private $options;
 	// internal array for storing retrieved options values
 	private $_options;
+	
+	// instances of helping classes
+	public $drafter;
+	private $notices;
 	// text used on the button on post.php to initiate creation of a draft
-	public static $draft_text = 'Save a Draft';	
-	// the fields to copy from published post to new draft
-	private $post_fields = array('post_title', 'post_content', 'post_excerpt');
-
+	public static $draft_text = 'Save a Draft';
 	
 	public function __construct() {
+		global $pagenow;		
+
 		// default options
 		$this->options = array(
 			'version' => self::$version,
 			'post_types' => array('post', 'page')
 		);
 		// install if new, update if version has changed
-		$this->install_or_update();		
-		// register the custom post status
-		add_action('init', array($this, 'add_post_status'), 2);
+		$this->install_or_update();
+		
+		// flash-y wp admin notices
+		$this->notices = new DPR_Admin_Notice();
+		// Postdrafter handles creating and merging drafts
+		$this->drafter = new DPR_Postdrafter(&$this);
+
 		// hook into pre_post_update to create new draft
 		add_action('pre_post_update', array($this, 'route_create'), 1);		
 		// hook into post status transition to publish a draft post
-		add_action('drp_draft_to_publish', array($this, 'route_publish'));
-		// delete all drafts when a parent gets hard deleted
-		add_action('deleted_post', array($this, 'parent_deleted'));
+		add_action('dpr_draft_to_publish', array($this, 'route_publish'));
+		// admin menu page to set allowable post types
+		add_action('admin_menu', array($this, 'options_page'));
+		// check to see if we want to display any admin notices on post.php
+		add_action('admin_head', array($this, 'maybe_render_admin_notices'));
+		// add meta boxes
+		add_action('add_meta_boxes', array($this, 'meta_boxes'));
 		
-		if (is_admin())
-			$this->admin_init();		
+		if ('edit.php' == $pagenow)
+			add_action('admin_print_scripts', array($this, 'add_js'));
+		
+		// custom revision page and method
+		add_action('load-revision.php', array($this, 'dpr_revision'));		
+		// add action to deal with post deletion
+		add_action('publish_to_trash', array($this, 'post_deletion'));
 	}
 	
-	// register the post status
-	// @protected - see wp-includes/query.php line 2684. this enables previews. Ln2659 posts_results
-	public function add_post_status() {
-		register_post_status($this->status_value, array(
-			'label' => 'Draft Revision',
-			'public' => false,
-			'protected' => true,
-			'exclude_from_search' => true,
-			'show_in_admin_all_list' => false,
-			'show_in_admin_status_list' => true,
-			'label_count' => _n_noop( 'Draft Revisions <span class="count">(%s)</span>',
-				'Draft Revisions <span class="count">(%s)</span>' )
-		) );
+	// proxy to Postdrafter's static add post status method. this is the only thing we do
+	// on a public init
+	public static function add_post_status() {
+		DPR_Postdrafter::add_post_status();
 	}
 	
-	// initialize the admin class
-	private function admin_init() {
-		$this->admin = new DRP_Admin(&$this);
+	// add some neccessarily evil js to post.php and edit.php to help manage form data and submit actions
+	public function add_js() {
+		wp_register_script( 'dprjs', plugins_url( '/assets/dpr.dev.js', __FILE__ ), '', '1.0', 'true' );
+		wp_enqueue_script( 'dprjs' );
 	}
-	
-	// add support for a post type
-	public function add_post_type_support($post_type) {
-		$types = $this->get_permitted_post_types();
-		$types[] = $post_type;
-		$this->update_option(array( 'post_types' => $types ));
-	}
-	
-	// gets the post types allowed for drafts as defined by the user in the options screen
-	public function get_permitted_post_types() {
-		$types = $this->get_option('post_types');
-		return $types;
-	}
-	
-	// checks to see whether a post type is supported
-	public function post_type_is_supported($post_type) {
-		$types = (array) $this->get_permitted_post_types();
-		return in_array($post_type, $types);
-	}
-
+		
 	// routes a request to create a new draft
 	public function route_create($id) {
 		global $post;	
@@ -90,7 +79,7 @@ class Draft_Revisions_Plugin {
 		
 		// check to see if we are saving a new draft
 		if ( isset($_POST['save']) && $_POST['save'] == self::$draft_text ) {
-			$draft_id = $this->create_draft($id);
+			$draft_id = $this->drafter->create_draft($id);
 			wp_redirect( get_edit_post_link($draft_id, '&') );
 			exit();
 
@@ -99,184 +88,203 @@ class Draft_Revisions_Plugin {
 		}
 		
 	}
-	
-	// create a draft of a published post
-	public function create_draft($id) {
-		$parent = get_post($id);
-					
-		$author = wp_get_current_user()->ID;
 		
-		if ( ! $this->can_have_drafts($parent) )
-			return false;
-
-		// so far so good	
-		$data = array(
-			'post_status' => $this->status_value,
-			'post_author' => $author,
-			'post_parent' => $parent->ID,
-			'post_type' => $parent->post_type
-		);
-		
-		// turn $this->post_fields into array with keys
-		$fields = array_fill_keys($this->post_fields, null);
-		// intersect with $post
-		$post_data = array_intersect_key((array) $parent, $fields);
-		// combine the arrays
-		$data += $post_data;
-		// insert the post
-		$draft_id = wp_insert_post($data);
-
-		// return false, let the view display an error
-		if ( !$draft_id )
-			return false;
-		
-		// also copy all the meta. featured images are stored in here so this should
-		// take care of copying the featured image
-		$this->transfer_post_meta($parent->ID, $draft_id);
-		// copy all taxonomies
-		$this->transfer_post_taxonomies($parent->ID, $draft_id);
-		
-		// don't worry about copying attachments here
-		// on draft publish we'll do a merge of all attachments
-				
-		// no xfer of comments, those stay with the original
-		
-		return $draft_id;
-	}
-	
 	// route a request to publish a draft
 	public function route_publish($post) {
 		if ( wp_is_post_revision($post) )
 			return false;
+
+		$pub_id = $this->drafter->publish_draft($post);
 		
-		$pub_id = $this->publish_draft($post);
 		wp_redirect( get_edit_post_link($pub_id, '&') );
 		exit();
 	}
 	
-	// publishes a draft by merging changes back into the parent post and deleting the
-	// draft post (hard delete)
-	public function publish_draft($post) {
-		$parent = get_post($post->post_parent);
+	// load-revision.php callback to create our own custom diff page
+	// mostly follows wp's revision.php
+	public function dpr_revision() {
+		if ( $_GET['action'] != 'dpr_diff' ) return;
 		
-		$data = array_merge((array) $parent, (array) $post);
-		$data['post_status'] = 'publish';
-		$data['ID'] = $parent->ID;
-		
-		$published_id = wp_update_post($data);
-		
-		// return false, let the view display an error
-		if ( !$published_id )
-			return false;
-		
-		// copy any meta over as well. should take care of featured image
-		$this->transfer_post_meta($post->ID, $parent->ID, 'update');
-		// copy all taxonomies
-		$this->transfer_post_taxonomies($post->ID, $parent->ID);
+		require_once(ABSPATH . '/wp-admin/admin.php');
 
-		// copy attachments back to the parent
-		$this->transfer_post_attachments($post->ID, $parent->ID);
-				
-		// if everything was successful, we can delete the draft post, true to force hard delete
-		if ( ! $deleted = wp_delete_post($post->ID, true) )
-			// need to pass thru some error message?
-		
-		return $published_id;
-	}
-	
-	// transfers post meta from one post to another
-	// @TODO error checking
-	private function transfer_post_meta($from_id, $to_id, $method = 'add') {
-		$all_meta = get_post_custom($from_id);
+		$left = get_post($_GET['left']);
+		$right = get_post($_GET['right']);
 
-		foreach ($all_meta as $key => $value) {
-			$method == 'add' ?
-				add_post_meta($to_id, $key, $value[0]) :
-				update_post_meta($to_id, $key, $value[0]);
+		if (
+			! current_user_can( 'read_post', $left->ID ) || 
+			! current_user_can( 'read_post', $right->ID )
+		)
+			return;
+
+		// make sure draft is always on the right
+		if ( $left->ID == $right->post_parent ) {
+			$parent = $left;
+			$draft = $right;
+
+		} else if ( $right->ID == $left->post_parent ) {
+			$parent = $right;
+			$draft = $left;
+		} else {
+			$this->notices->add(array(
+				'text' => '<strong>Whoops!</strong> Those posts aren\'t related.',
+				'type' => 'error'
+			));
+			wp_redirect(get_edit_post_link($left->ID));
+			exit();
 		}
-	}
-	
-	// transfers post taxonomies from one post to another
-	// @TODO error checking
-	private function transfer_post_taxonomies($from_id, $to_id) {
-		$taxis = get_object_taxonomies( get_post_type($from_id) );
-
-		foreach ($taxis as $tax) {
-		    $terms = wp_get_object_terms( $from_id, $tax );
-		    $term = array();
-		    foreach ($terms as $t) {
-		        $term[] = $t->slug;
-		    } 
-
-		    wp_set_object_terms( $to_id, $term, $tax, false );
-		}
-	}
-	
-	// transfers post attachments from one post to another
-	// this is only called on a publish action to copy any new attachments
-	// from the draft back to the parent
-	private function transfer_post_attachments($from_id, $to_id) {
-		$attachments = get_children(
-			array( 'post_parent' => $from_id, 'post_type' => 'attachment', 'numberposts' -1 )
-		);
 		
-		if ( !$attachments ) return;
+		// do the diff
+		$differ = new DPR_Admin_Diff(&$parent, &$draft);
+		$rev_fields = $differ->diff();
 		
-		foreach ($attachments as $pic) {
-			$pic->post_parent = $to_id;
-			wp_update_post($pic);
-		}
+		require_once( './admin-header.php' );
+		
+		echo DPR_Mustache::render('diff', array(
+			'left' => $parent,
+			'right' => $draft,
+			'rev_fields' => $rev_fields
+		));
+		
+		require_once( './admin-footer.php' );
+		// make sure the rest of default revision diff action doesn't happen
+		exit();
 	}
 	
-	// gets all taxonomies associated with a given post type
-	public function get_all_post_taxonomies($id) {
-		$taxis = get_object_taxonomies( get_post_type($id) );
-		$all = array();
+	// callback to post trashing action to warn user about active drafts
+	public function post_deletion($post) {
+		if ( ! $this->drafter->has_draft($post->ID) ) return;
+		
+		$this->notices->add(array(
+			'text' => DPR_Mustache::render('notice/_post_deletion', array('title' => $post->post_title)),
+			'type' => 'error'
+		));
+	}
+	
+	// check post.php to see if we want to render some admin notices
+	public function maybe_render_admin_notices() {
+		global $post;
+		global $pagenow;
 
-		foreach ($taxis as $tax) {
-			$terms = wp_get_object_terms( $id, $tax );
-			$all[$tax] = array();
-			foreach ($terms as $t) {
-				$all[$tax][] = $t->term_id;
+		if ( 'post.php' != $pagenow ) return;
+
+		// if it's a parent, warn the user about editing parents with drafts
+		if ( $this->drafter->has_draft($post->ID) ) {
+			$this->notices->now(array(
+				'text' => DPR_Mustache::render('notice/_active_drafts'), 
+				'type' => 'error'
+			));
+
+		// if it's a draft, check to see if the parent's been updated more recently
+		} else if ( $this->drafter->is_draft($post->ID) ) {
+			$parent = get_post($post->post_parent);
+			
+			if ( $parent->post_modified > $post->post_modified ) {
+				$this->notices->now(array(
+					'text' => DPR_Mustache::render('notice/_parent_post_updated', array(
+						'post_type' => $parent->post_type,
+						'right' => $parent->ID,
+						'left' => $post->ID
+					)),
+					'type' => 'updated'
+				));
 			}
 		}
-		return $all;
-	}
-	
-	public function can_have_drafts($parent) {
-		return $this->post_type_is_supported($parent->post_type) &&
-			in_array($parent->post_status, array('publish', 'private'));
-	}
-	
-	// conditional check to see if a post id has drafts
-	public function has_draft($id) {
-		$kids = get_children(array(
-			'post_parent' => $id,
-			'post_status' => $this->status_value
-		));
 		
-		return !!$kids;
 	}
 	
-	// conditional check to see if a post id is a draft
-	public function is_draft($id) {
-		return get_post($id)->post_status == $this->status_value;
+	// callback to add the options page to Setttings menu in wp-admin
+	public function options_page() {
+		add_options_page(
+			'Drafts of Revisions Options',
+			'Drafts of Revisions',
+			'manage_options',
+			'dpr_options',
+			array($this, 'render_options_page')
+		);		
 	}
 	
-	// post deletion callback to delete any drafts when a parent is (hard) deleted
-	// Admin.php provides an admin notice when a parent is moved to the trash
-	public function parent_deleted($parent_id) {
-		if ( !$this->has_draft($parent_id) ) return;
+	// render the options page. also handles updates to the plugin options via a POST request
+	public function render_options_page() {
+		if ($_POST)
+			$this->update_option($_POST);
 		
-		$kids = get_children(array(
-			'post_parent' => $parent_id,
-			'post_status' => $this->status_value
-		));
-		foreach ($kids as $kid) {
-			wp_delete_post($kid->ID, true); // true to force delete
+		$all_types = get_post_types();
+		// remove attachment, revision, and nav_menu_item from the list of post type options
+		$all_types = array_filter(
+			$all_types,
+			create_function(
+				'$item',
+				'return !in_array($item, array(\'attachment\', \'revision\', \'nav_menu_item\'));'
+			)
+		);
+		
+		$supported = $this->drafter->get_permitted_post_types();
+		
+		foreach( $all_types as $key => $value ) {
+			$all_types[$key] = array('name' => $value, 'supported' => in_array($value, $supported));
 		}
+			
+		echo DPR_Mustache::render('options_page', array(
+			'all_types' => array_values($all_types)
+		));
 	}
 
+	// callback for add_meta_boxes to add a meta box to edit.php
+	public function meta_boxes() {
+		global $post;
+
+		// if post is a draft, render the draft meta box
+		if ( $this->drafter->is_draft($post->ID) ) {
+			$tpl = 'render_draft_meta_box';
+			add_action('admin_print_scripts', array($this, 'add_js'));
+		
+		// if post is a parent, render the parent meta box
+		} else if ($this->drafter->can_have_drafts($post)) {
+			$tpl = 'render_parent_meta_box';
+		} else {
+			return;
+		}
+		
+		add_meta_box(
+			'dpr-draft',
+			'Drafts of Revisions',
+			array($this, $tpl),
+			$post->post_type,
+			'side',
+			'high'
+		);	
+	}
+	
+	// render a meta box for a draft post's edit.php
+	public function render_draft_meta_box($post) {
+		$parent = get_post($post->post_parent);
+		$parent->admin_link = get_edit_post_link($parent->ID, '&');
+		echo DPR_Mustache::render('meta_box/_draft', array(
+			'parent' => (array) $parent,
+			'draft' => $post
+		));
+	}
+	
+	// render a meta box for a parent post's edit.php
+	public function render_parent_meta_box($post) {
+		$kids = get_children(array(
+			'post_parent' => $post->ID,
+			'post_status' => $this->drafter->get_status_val()
+		));
+		
+		// turn kids into a basic array and replace author id with author nicename
+		$kids = array_values($kids);
+		$kids = array_map(
+			create_function(
+				'$kid',
+				'$kid->post_author = get_the_author_meta(\'user_nicename\', $kid->post_author);return $kid;'
+			),
+			$kids
+		);
+		echo DPR_Mustache::render('meta_box/_parent', array('kids' => $kids));
+	}
+	
+	
 	// add an option to wp_options for the first time
 	public function add_option($option, $value, $autoload = 'yes') {
 		return add_option($option, $value, '', $autoload);
@@ -308,6 +316,8 @@ class Draft_Revisions_Plugin {
 		return delete_option($option || self::$options_key);
 	}
 	
+	// check current version against version stored in wp_options and perform
+	// install or update as appropriate
 	public function install_or_update() {
 		$saved_ver = $this->get_option('version');
 		if (!$saved_ver) {
@@ -324,9 +334,9 @@ class Draft_Revisions_Plugin {
 		delete_option(self::$options_key);
 	}
 	
-	// autoloader for DRP-prefixed classes
+	// autoloader for DPR-prefixed classes
 	public static function autoloader( $class ) {
-        if ( strpos($class, 'DRP') !== 0 ) {
+        if ( strpos($class, 'DPR') !== 0 ) {
             return;
         }
         $file = dirname(__FILE__) . '/' . str_replace('_', DIRECTORY_SEPARATOR, substr($class, 4)) . '.php';
@@ -337,4 +347,3 @@ class Draft_Revisions_Plugin {
     }
 	
 }
-

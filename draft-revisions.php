@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Drafts of Revisions
+Plugin Name: Drafts of Post Revisions
 Description: Create drafts of WordPress posts/pages/CPTs even after they've been published
 Version: 0.5
 Author: daxitude
@@ -13,7 +13,11 @@ require_once('core.php');
 // register an autoloader. automatically requires files matching a class
 // when the class is first used. files must start from the plugin's admin base path
 // underscores in class names correspond to folder changes.
-// eg DRP_Admin_Diff = draft-revisions/Admin/Diff (case sensitive)
-spl_autoload_register(array('Draft_Revisions_Plugin', 'autoloader'));
+// eg DPR_Admin_Diff = draft-revisions/Admin/Diff (case sensitive)
+spl_autoload_register(array('Draft_Post_Revisions', 'autoloader'));
 
-new Draft_Revisions_Plugin();
+if ( is_admin() )
+	new Draft_Post_Revisions();
+else
+	// do we need to add post status on a public page?
+	Draft_Post_Revisions::add_post_status();

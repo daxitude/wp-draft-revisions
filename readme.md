@@ -1,5 +1,5 @@
 
-# Drafts of Revisions
+# Drafts of Post Revisions
 
 Create drafts of WordPress posts/pages/CPTs even after they've been published. And when you're ready, merge the changes back into the original published post.
 

@@ -2,7 +2,7 @@
 jQuery(document).ready(function ($) {
 		
 	var displayText = 'Draft Revision';
-	var statusValue = 'drp_draft';
+	var statusValue = 'dpr_draft';
 	var select = $('#post_status');
 	
 	if (select.length > 0) {

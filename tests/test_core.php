@@ -3,11 +3,11 @@
  * Core Tests
  */
 
-class DRP_Test extends WP_UnitTestCase {
+class DPR_Test extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();		
-		$this->instance = new Draft_Revisions_Plugin();
+		$this->instance = new Draft_Post_Revisions();
 	}
 	
 	function rstr() {
@@ -53,7 +53,7 @@ class DRP_Test extends WP_UnitTestCase {
 	}
 	
 	function test_plugin_activated() {
-		$this->assertTrue( class_exists( 'Draft_Revisions_Plugin' ) );
+		$this->assertTrue( class_exists( 'Draft_Post_Revisions' ) );
 	}
 	
 	function test_post_status_exists() {

@@ -3,7 +3,7 @@ Contributors: daxitude
 Tags: status, post status, workflow, Revision
 Requires at least: 3.4
 Tested up to: 3.4.2
-Stable tag: 0.5
+Stable tag: 0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,14 +23,26 @@ Create drafts of WordPress posts/pages/CPTs even after they've been published. A
 * Warns you when the original post has been updated ahead of a draft
 * Allows you to preview drafts in the post/page/CPT's natural template
 
+This plugin requires javascript.
+
 
 == Installation ==
 
 See [Installing Plugins](http://codex.wordpress.org/Managing_Plugins#Installing_Plugins).
 
-1. Download the zip from here or from [Github](http://github.com/daxitude/wp-draft-revisions) and drop it into your site's wp-content/plugins directory.
-1. Navigate to your site's Admin->Plugins section (wp-admin/plugins.php) and activate the plugin.
-1. Navigate to Settings->Draft Revisions to set up the permitted post types
+1. Download the zip from here or from [Github](http://github.com/daxitude/wp-draft-revisions) and drop it into your site's wp-content/plugins directory, or go to your site > Plugins > Add New > search for 'Drafts of Post Revisions'
+1. Navigate to your site's Admin > Plugins section (wp-admin/plugins.php) and activate the plugin
+1. Go to Settings > Drafts of Revisions to set up the permitted post types
+1. Go to any post edit screen and look for the Drafts of Revisions postbox in the upper right above the Publish postbox. Click on "Save a Draft" to create a new draft of a published post
+
+== How Does it Work? ==
+
+Go to a post's edit screen and click on the "Save a Draft" button in the Drafts of Revisions postbox (make sure you've enabled the post type first). The post's core data, taxonomies, and meta data are all copied into a new post - the draft - as a child of the original post. The draft has a custom post status; it will never show up in any queries for posts. You can create as many drafts as you like.
+
+You can edit a draft's post content, taxonomies, and meta data as you like and save progress with the native WP "Save Draft" button. You can also preview the draft and compare changes against the parent at any time (even comparing changes in taxonomies and meta data).
+
+When you're ready to update the parent post, click the Publish button from the draft's edit page. All post data, taxonomies, and meta data are merged back into the parent post and the draft post is deleted.
+
 
 == Screenshots ==
 
@@ -38,5 +50,4 @@ See [Installing Plugins](http://codex.wordpress.org/Managing_Plugins#Installing_
 1. Viewing the original page
 1. Comparing changes
 
-== Todo ==
 

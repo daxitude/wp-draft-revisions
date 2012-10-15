@@ -7,7 +7,10 @@ class DPR_Postdrafter {
 	// custom status value that gets registered and assigned to draft posts
 	public static $status_value = 'dpr_draft';
 	// the fields to copy from published post to new draft
-	private $post_fields = array('post_title', 'post_content', 'post_excerpt');
+	private $post_fields = array(
+		'post_title', 'post_content', 'post_excerpt', 'post_type', 'comment_status',
+		'ping_status', 'post_password', 'pinged', 'menu_order', 'post_mime_type', 'comment_count'
+	);
 	
 	public function __construct(&$parent) {
 		$this->parent = &$parent;
@@ -68,8 +71,7 @@ class DPR_Postdrafter {
 		$data = array(
 			'post_status' => $this->get_status_val(),
 			'post_author' => $author,
-			'post_parent' => $parent->ID,
-			'post_type' => $parent->post_type
+			'post_parent' => $parent->ID
 		);
 		
 		// turn $this->post_fields into array with keys
@@ -104,8 +106,8 @@ class DPR_Postdrafter {
 	public function publish_draft($post) {
 		$parent = get_post($post->post_parent);
 		
-		// don't want to update the post name or url
-		unset($post->post_name, $post->guid);
+		// don't want to copy these back to the parent post
+		unset($post->post_name, $post->guid, $post->post_parent, $post->post_date, $post->post_date_gmt);
 		
 		$data = array_merge((array) $parent, (array) $post);
 		$data['post_status'] = 'publish';
@@ -125,10 +127,9 @@ class DPR_Postdrafter {
 		// copy attachments back to the parent
 		$this->transfer_post_attachments($post->ID, $parent->ID);
 				
-		// if everything was successful, we can delete the draft post, true to force hard delete
-		if ( ! $deleted = wp_delete_post($post->ID, true) )
-			// need to pass thru some error message?
-			wp_die('failed to delete draft');
+		// if everything was successful, we can delete the draft in question, true to force hard delete
+		// other drafts aren't deleted. maybe the user still wants them
+		wp_delete_post($post->ID, true);
 		
 		return $published_id;
 	}
@@ -210,6 +211,15 @@ class DPR_Postdrafter {
 	// conditional check to see if a post id is a draft
 	public function is_draft($id) {
 		return get_post($id)->post_status == self::$status_value;
+	}
+	
+	public function get_drafts($parent_id) {
+		$kids = get_children(array(
+			'post_parent' => $parent_id,
+			'post_status' => self::$status_value
+		));
+		
+		return $kids;
 	}
 	
 	// post deletion callback to delete any drafts when a parent is (hard) deleted

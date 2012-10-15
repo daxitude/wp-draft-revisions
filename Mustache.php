@@ -1,7 +1,7 @@
 <?php
-
 /*
  * singleton-ish class for passing data to Mustache to render
+ * 
  */
 abstract class DPR_Mustache {
 

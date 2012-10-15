@@ -15,4 +15,5 @@
 /tmp
 *.tmproj
 *.svn
-tests/test_web.php
+tests/test_admin.php
+tests/seleniumtest.php

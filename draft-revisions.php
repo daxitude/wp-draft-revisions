@@ -2,7 +2,7 @@
 /*
 Plugin Name: Drafts of Post Revisions
 Description: Create drafts of WordPress posts/pages/CPTs even after they've been published
-Version: 0.5
+Version: 0.6
 Author: daxitude
 Author URI: http://github.com/daxitude/
 Plugin URI: http://github.com/daxitude/wp-draft-revisions
@@ -20,4 +20,5 @@ if ( is_admin() )
 	new Draft_Post_Revisions();
 else
 	// do we need to add post status on a public page?
+	// probably, just in case there's a query in use with something like post_status => 'any'
 	Draft_Post_Revisions::add_post_status();

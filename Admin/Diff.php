@@ -6,7 +6,13 @@ class DPR_Admin_Diff {
 	
 	private $left;
 	private $right;
-	private $fields_to_add = array();
+	private $fields_to_add = array(
+		'menu_order' => 'Menu Order',
+		'comment_status' => 'Comment Status',
+		'ping_status' => 'Ping Status',
+		'post_password' => 'Post Password',
+		'post_name' => 'Post Name'
+	);
 	private $dont_include_meta = array( '_edit_last', '_edit_lock' );
 	
 	// left is always the parent

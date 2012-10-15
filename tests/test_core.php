@@ -47,9 +47,9 @@ class DPR_Test extends WP_UnitTestCase {
 			'user_email' => 'john'.$this->rstr().'@example.com',
 		);
 
-		$userID = wp_insert_user( $user );
+		$user_id = wp_insert_user( $user );
 
-		return $userID;
+		return $user_id;
 		 
 	}
 	
@@ -111,6 +111,38 @@ class DPR_Test extends WP_UnitTestCase {
 		$this->assertEquals( $test_published->post_content, $new_content );
 	}
 	
+	function test_parent_identical_except_for_what_was_updated() {
+		$new_content = 'this is revised';
+		
+		$parent_og = $this->create_post();
+		
+		// change something to non defaults
+		wp_update_post(array('ID' => $parent_og->ID, 'comment_status' => 'closed'));
+
+		$parent_og = get_post($parent_og->ID);
+
+		$draft = $this->create_draft($parent_og->ID);
+		
+		wp_update_post(array('ID' => $draft->ID, 'post_content' => $new_content));
+		
+		$draft = get_post($draft->ID);
+		$this->drafter->publish_draft($draft);
+		
+		$parent_new = get_post($parent_og->ID);
+		
+		// unset the fields that are ok to have changed
+		unset($parent_og->post_author);
+		unset($parent_new->post_author);
+		unset($parent_og->post_content);
+		unset($parent_new->post_content);
+		unset($parent_og->post_modified);
+		unset($parent_new->post_modified);
+		unset($parent_og->post_modified_gmt);
+		unset($parent_new->post_modified_gmt);
+		
+		$this->assertEquals((array) $parent_og, (array) $parent_new);
+	}
+	
 	function test_metas_are_copied() {
 		$parent = $this->create_post();	
 		$draft = $this->create_draft($parent->ID);
@@ -164,6 +196,20 @@ class DPR_Test extends WP_UnitTestCase {
 		
 		$this->assertEquals($parent_tax_new, $draft_tax);
 		$this->assertNotEquals($parent_tax_old, $draft_tax);
+	}
+	
+	function test_draft_deleted_on_publish() {
+		$parent = $this->create_post();	
+		$draft1 = $this->create_draft($parent->ID);
+		$draft2 = $this->create_draft($parent->ID);
+		
+		$this->drafter->publish_draft($draft1);
+		
+		$test_one = get_post($draft1->ID);
+		$test_two = get_post($draft2->ID);
+		
+		$this->assertNull($test_one);		
+		$this->assertNotNull($test_two);		
 	}
 	
 	function test_has_draft() {
@@ -232,10 +278,12 @@ class DPR_Test extends WP_UnitTestCase {
 		
 		wp_delete_post($parent->ID, true);
 		
-		$test_one = get_post($draft->ID);
+		$test_one = get_post($draft1->ID);
+		$test_two = get_post($draft2->ID);
 		$test_many = get_posts(array('post_parent' => $parent->ID));
 		
 		$this->assertNull($test_one);		
+		$this->assertNull($test_two);		
 		$this->assertEmpty($test_many);		
 	}
 	

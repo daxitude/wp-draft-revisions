@@ -6,7 +6,7 @@
 class Draft_Post_Revisions {
 	
 	// plugin version number
-	public static $version = 0.5;
+	public static $version = 0.6;
 	// key for wp_options to store plugin options
 	private static $options_key = 'dpr_options';
 	// array of permitted options
@@ -70,19 +70,27 @@ class Draft_Post_Revisions {
 		
 	// routes a request to create a new draft
 	public function route_create($id) {
-		global $post;	
 		// don't do anything if an autosave
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
 			return $id;
-
-		// if we got this far, check user permissions
 		
 		// check to see if we are saving a new draft
 		if ( isset($_POST['save']) && $_POST['save'] == self::$draft_text ) {
+			// check user permissions
+			if ( ! current_user_can( 'edit_post', $id ) )
+				wp_die('You don\'t have permission to edit this post.');
+			
 			$draft_id = $this->drafter->create_draft($id);
-			wp_redirect( get_edit_post_link($draft_id, '&') );
+			$redirect_id = $draft_id ? $draft_id : $id;
+			// add error message
+			if (!$draft_id) {
+				$this->notices->add(array(
+					'text' => '<strong>Whoops!</strong> Failed to create the draft. Please try again.',
+					'type' => 'error'
+				));
+			}				
+			wp_redirect( get_edit_post_link($redirect_id, '&') );
 			exit();
-
 		} else {
 			return $id;
 		}
@@ -93,10 +101,21 @@ class Draft_Post_Revisions {
 	public function route_publish($post) {
 		if ( wp_is_post_revision($post) )
 			return false;
+		
+		// check user permissions
+		if ( ! current_user_can( 'edit_post', $post->ID ) )
+			wp_die('You don\'t have permission to edit this post.');
 
 		$pub_id = $this->drafter->publish_draft($post);
-		
-		wp_redirect( get_edit_post_link($pub_id, '&') );
+		$redirect_id = $pub_id ? $pub_id : $post->ID;		
+		// add error message
+		if (!$pub_id) {
+			$this->notices->add(array(
+				'text' => '<strong>Whoops!</strong> Failed to publish the draft. Please try again.',
+				'type' => 'error'
+			));
+		}
+		wp_redirect( get_edit_post_link($redirect_id, '&') );
 		exit();
 	}
 	
@@ -104,6 +123,9 @@ class Draft_Post_Revisions {
 	// mostly follows wp's revision.php
 	public function dpr_revision() {
 		if ( $_GET['action'] != 'dpr_diff' ) return;
+		
+		// a wp global to set the correct active menu item
+		global $parent_file;
 		
 		require_once(ABSPATH . '/wp-admin/admin.php');
 
@@ -113,8 +135,14 @@ class Draft_Post_Revisions {
 		if (
 			! current_user_can( 'read_post', $left->ID ) || 
 			! current_user_can( 'read_post', $right->ID )
-		)
-			return;
+		) {
+			$this->notices->add(array(
+				'text' => '<strong>Whoops!</strong> You don\'t have permission to view these posts.',
+				'type' => 'error'
+			));
+			wp_redirect(admin_url('index.php'));
+			exit();
+		}
 
 		// make sure draft is always on the right
 		if ( $left->ID == $right->post_parent ) {
@@ -136,6 +164,12 @@ class Draft_Post_Revisions {
 		// do the diff
 		$differ = new DPR_Admin_Diff(&$parent, &$draft);
 		$rev_fields = $differ->diff();
+		
+		// wp global, sets up the correct menu item to be active
+		$parent_file = 'edit.php';
+		if ($parent->post_type != 'post')
+			$parent_file .= '?post_type=' . $parent->post_type;
+
 		
 		require_once( './admin-header.php' );
 		
@@ -174,11 +208,11 @@ class Draft_Post_Revisions {
 				'type' => 'error'
 			));
 
-		// if it's a draft, check to see if the parent's been updated more recently
+		// if it's a draft, check to see if the parent's been updated since the draft was created
 		} else if ( $this->drafter->is_draft($post->ID) ) {
 			$parent = get_post($post->post_parent);
 			
-			if ( $parent->post_modified > $post->post_modified ) {
+			if ( $parent->post_modified > $post->post_date ) {
 				$this->notices->now(array(
 					'text' => DPR_Mustache::render('notice/_parent_post_updated', array(
 						'post_type' => $parent->post_type,

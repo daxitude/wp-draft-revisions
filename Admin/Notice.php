@@ -1,6 +1,9 @@
 <?php
 
 /**
+ * Copyright (c) 2012 Dax Ponce de Leon
+ * Distributed under MIT License
+ *
  * Provides a Ruby/Rails-like flash message system for WordPress admin notices.
  * Implementation heavily inspired by Slim Framework for PHP <http://slimframework.com>
  * Sample usage:
@@ -16,10 +19,11 @@
  *		));
  *
  * You can add a notice to the next request with $this->notices->add()
+ * Notices enqueued with the admin_notices action always print before any of WP's own notices
  *
  * @version 0.1
  * @author daxitude <daxitude@gmail.com>
- * @license 
+ * @license MIT
  */
 
 class DPR_Admin_Notice {
@@ -35,11 +39,11 @@ class DPR_Admin_Notice {
 	protected $defaults = array(
 		'text' => null,
 		'type' => 'updated', // || error
-		'position' => null
+		'position' => 999 // kinda hacky but makes sure that default position is lowest
 	);
 	
-	// the class should be instantiated on each new admin request
-	//
+	// the class should be instantiated on each new admin request. all messages in
+	// previous and now will be merged together and printed on the admin_notices action
 	public function __construct() {
 		// make sure the session has started
 		if ( !isset($_SESSION) ) session_start();
@@ -87,10 +91,12 @@ class DPR_Admin_Notice {
 	}
 	
 	// public method to manually return an array of current notices
+	// also used internally on print_notices callback
 	public function get_notices() {
-		// @todo sort array by position
-//		$position = isset($notice['position']) ? $notice['position'] : count($this->notices['next']);
-		return array_merge($this->notices['prev'], $this->notices['now']);
+		// sort array by position				
+		$notices = array_merge($this->notices['prev'], $this->notices['now']);
+		uasort($notices, create_function('$a, $b', 'return $a[\'position\'] < $b[\'position\'] ? -1 : 1;'));				
+		return $notices;
 	}
 	
 	// internal method called by add() and now()

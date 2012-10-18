@@ -24,4 +24,10 @@ jQuery(document).ready(function ($) {
 		
 	});
 	
+	var numCols = $('#the-list').children('tr').first().children('td').length;
+	
+	$('#the-list').on('setColSpan', '.dpr-title-cell', function () {
+		$(this).attr('colspan', numCols);
+	});
+	
 });

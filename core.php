@@ -97,8 +97,12 @@ class Draft_Post_Revisions {
 		
 	}
 		
-	// route a request to publish a draft
+	// route a request to publish a draft. callback from post status transition action
 	public function route_publish($post) {
+		// check if is a quick edit so we don't redirect
+		// seems like we could check post_view == list
+		$ajax = ('inline-save' == $_POST['action']) ? true : false;
+		
 		if ( wp_is_post_revision($post) )
 			return false;
 		
@@ -115,6 +119,10 @@ class Draft_Post_Revisions {
 				'type' => 'error'
 			));
 		}
+		
+		if ($ajax)
+			exit(DPR_Mustache::render('post_edit_row', array('post' => get_post($pub_id))));
+		
 		wp_redirect( get_edit_post_link($redirect_id, '&') );
 		exit();
 	}

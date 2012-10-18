@@ -23,7 +23,8 @@ abstract class DPR_Mustache {
 				'partials_loader' => new Mustache_Loader_FilesystemLoader(self::$dir, $m_opts),
 				'helpers' => array(
 					'format_date' => array(__CLASS__, 'helper_format_date'),
-					'edit_link' => array(__CLASS__, 'helper_edit_link')
+					'edit_link' => array(__CLASS__, 'helper_edit_link'),
+					'permalink' => array(__CLASS__, 'helper_permalink')
 				)
 			)
 		);
@@ -39,6 +40,10 @@ abstract class DPR_Mustache {
 	
 	public static function helper_edit_link($id, $mustache) {
 		return get_edit_post_link($mustache->render($id));
+	}
+	
+	public static function helper_permalink($id, $mustache) {
+		return get_permalink($mustache->render($id));
 	}
 		
 	// formatter for dates

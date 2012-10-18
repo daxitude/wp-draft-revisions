@@ -6,7 +6,7 @@
 class Draft_Post_Revisions {
 	
 	// plugin version number
-	public static $version = 0.6;
+	public static $version = 0.7;
 	// key for wp_options to store plugin options
 	private static $options_key = 'dpr_options';
 	// array of permitted options
@@ -361,6 +361,10 @@ class Draft_Post_Revisions {
 			// do some update stuff here
 			$this->update_option(array('version' => self::$version));
 		}			
+	}
+	
+	public static function options_key() {
+		return self::$options_key;
 	}
 	
 	// uninstall callback

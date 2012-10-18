@@ -5,4 +5,4 @@ if ( !defined('WP_UNINSTALL_PLUGIN' ) )
 
 require_once('core.php');
 
-Draft_Revisions_Plugin::uninstall();
+Draft_Post_Revisions::uninstall();

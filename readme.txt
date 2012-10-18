@@ -3,7 +3,7 @@ Contributors: daxitude
 Tags: status, post status, workflow, Revision
 Requires at least: 3.4
 Tested up to: 3.4.2
-Stable tag: 0.6
+Stable tag: 0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,13 +15,13 @@ Create drafts of WordPress posts/pages/CPTs even after they've been published. A
 
 = Features =
 
-* Create non-public drafts of already published posts
-* Multiple drafts per published post
+* Create multiple drafts of already published posts
 * Merge the changes back into the published post when you're ready
-* Uses the published posts's original post type, so metas, taxonomies, etc all are available in admin screens and can even be modified and merged back into the original post
+* Uses the published posts's original post type, so metas, taxonomies, etc all are available in admin screens and can even be modified in the draft and merged back into the original post
 * Perform a post diff similar to WP's default revision.php?action=diff with added ability to compare changes in post meta and taxonomies
-* Warns you when the original post has been updated ahead of a draft
-* Allows you to preview drafts in the post/page/CPT's natural template
+* See a notice when the original post has been updated ahead of a draft
+* Preview drafts in the post/page/CPT's natural template
+* Since drafts all carry the same custom post status, they are organized in the admin's edit.php with their own status filter (see screenshot-4)
 
 This plugin requires javascript.
 
@@ -49,5 +49,6 @@ When you're ready to update the parent post, click the Publish button from the d
 1. Editing a draft
 1. Viewing the original page
 1. Comparing changes
+1. Draft revisions organized in edit.php under their own custom post status
 
 

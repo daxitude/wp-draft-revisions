@@ -67,11 +67,13 @@ class DPR_Postdrafter {
 		if ( ! $this->can_have_drafts($parent) )
 			return false;
 
-		// so far so good	
+		// so far so good, but don't let the draft have the same post_name. that might create
+		// wackiness in some queries
 		$data = array(
 			'post_status' => $this->get_status_val(),
 			'post_author' => $author,
-			'post_parent' => $parent->ID
+			'post_parent' => $parent->ID,
+			'post_name' => $parent->post_name . ' draft'
 		);
 		
 		// turn $this->post_fields into array with keys

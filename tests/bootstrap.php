@@ -15,4 +15,4 @@ $GLOBALS['wp_tests_options'] = array(
 	'active_plugins' => array( 'draft-revisions/draft-revisions.php' )
 );
 
-require_once dirname(__FILE__) . '/../../../../wordpress-tests/bootstrap.php';
+require_once dirname(__FILE__) . '/../../../../wptests/bootstrap.php';

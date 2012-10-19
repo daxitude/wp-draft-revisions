@@ -3,7 +3,7 @@ Contributors: daxitude
 Tags: status, post status, workflow, Revision
 Requires at least: 3.4
 Tested up to: 3.4.2
-Stable tag: 0.7
+Stable tag: 0.7.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

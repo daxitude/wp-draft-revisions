@@ -139,31 +139,100 @@ class DPR_Test_Postdrafter extends WP_UnitTestCase {
 		$this->assertEquals((array) $parent_og, (array) $parent_new);
 	}
 	
-	function test_metas_are_copied() {
-		$parent = $this->create_post();	
+	function test_metas_are_copied_to_draft() {
+		$parent = $this->create_post();
+		add_post_meta($parent->ID, 'foo', 'bar');				
 		$draft = $this->create_draft($parent->ID);
 		
 		$parent_meta = get_post_custom($parent->ID);
 		$draft_meta = get_post_custom($draft->ID);
-			
+					
 		$this->assertEquals($parent_meta, $draft_meta);
 	}
 	
-	function test_taxonomies_are_copied_to_draft() {
+	function test_metas_are_copied_back_to_parent() {
 		$parent = $this->create_post();
+		add_post_meta($parent->ID, 'foo', 'bar');				
+		$draft = $this->create_draft($parent->ID);
+		update_post_meta($draft->ID, 'foo', 'baz');				
+		
+		$parent_meta = get_post_custom($parent->ID);
+		$draft_meta = get_post_custom($draft->ID);
+
+		$this->drafter->publish_draft($draft);
+					
+		$this->assertEquals('baz', get_post_meta($parent->ID, 'foo', true));
+	}
+	
+	function test_serialized_metas_are_preserved_to_draft() {
+		$test_array = array('one' => 'lorem', 'two' => 'ipsum');
+		$parent = $this->create_post();
+		add_post_meta($parent->ID, 'foo', $test_array);				
+		$draft = $this->create_draft($parent->ID);
+		
+		$parent_meta = get_post_custom($parent->ID);
+		$draft_meta = get_post_custom($draft->ID);
+		
+		$draft_meta_foo = get_post_meta($draft->ID, 'foo', true);
+					
+		$this->assertEquals($parent_meta, $draft_meta);
+		$this->assertEquals($test_array, $draft_meta_foo);
+		$this->assertEquals('lorem', $draft_meta_foo['one']);
+	}
+	
+	function test_serialized_metas_are_preserved_on_publish() {
+		$test_array = array('one' => 'lorem', 'two' => 'ipsum');
+		$parent = $this->create_post();
+		add_post_meta($parent->ID, 'foo', $test_array);				
+		$draft = $this->create_draft($parent->ID);
+		
+		$meta = get_post_meta($draft->ID, 'foo', true);
+		$meta['one'] = 'hipster';
+		update_post_meta($draft->ID, 'foo', $meta);
+		
+		$this->drafter->publish_draft($draft);
+		
+		$draft_meta_foo = get_post_meta($parent->ID, 'foo', true);
+					
+		$this->assertEquals($meta, $draft_meta_foo);
+		$this->assertEquals('hipster', $draft_meta_foo['one']);
+	}
+	
+	function test_taxonomies_are_copied_to_draft() {
+		register_post_type('custom_pt', array(
+			'taxonomies' => array('category', 'post_tag')
+		));
+		$this->drafter->add_post_type_support('custom_pt');
+		register_taxonomy('custom_tax', array('post', 'page', 'custom_pt'), array(
+			'hierarchical' => true,
+			'public' => true,
+			'query_var' => true,
+			'rewrite' => array( 'slug' => 'foobar/custom_tax' )
+		) );
+		
+		$parent = $this->create_post(array('post_type' => 'custom_pt'));
 		
 		$cat = wp_insert_term('some_category', 'category');
 		$tag = wp_insert_term('some_tag', 'post_tag');
+		$tax = wp_insert_term('some_tax', 'custom_tax');
+		$another_tax = wp_insert_term('some_tax_deux', 'custom_tax');
 		
-		wp_set_object_terms($parent->ID, $cat['term_id'], 'category');
-		wp_set_object_terms($parent->ID, $tag['term_id'], 'post_tag');
+		wp_set_object_terms($parent->ID, $cat['term_id'], 'category', true);
+		wp_set_object_terms($parent->ID, $tag['term_id'], 'post_tag', true);
+		wp_set_object_terms($parent->ID, $tax['term_id'], 'custom_tax', true);
+		wp_set_object_terms($parent->ID, $another_tax['term_id'], 'custom_tax', true);
 		
 		$draft = $this->create_draft($parent->ID);
 		
 		$parent_tax = $this->drafter->get_all_post_taxonomies($parent->ID);
 		$draft_tax = $this->drafter->get_all_post_taxonomies($draft->ID);
 		
+		$parent_custom = get_the_terms($parent->ID, 'custom_tax');
+		$draft_custom = get_the_terms($draft->ID, 'custom_tax');
+
+		$this->assertEquals(2, count($draft_custom));
 		$this->assertEquals($parent_tax, $draft_tax);
+		$this->assertEquals($parent_custom, $draft_custom);
 	}
 	
 	function test_taxonomies_are_copied_back_to_parent() {

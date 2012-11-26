@@ -142,9 +142,10 @@ class DPR_Postdrafter {
 		$all_meta = get_post_custom($from_id);
 
 		foreach ($all_meta as $key => $value) {
+			$val = maybe_unserialize($value[0]);
 			$method == 'add' ?
-				add_post_meta($to_id, $key, $value[0]) :
-				update_post_meta($to_id, $key, $value[0]);
+				add_post_meta($to_id, $key, $val) :
+				update_post_meta($to_id, $key, $val);
 		}
 	}
 	

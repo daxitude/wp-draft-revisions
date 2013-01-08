@@ -100,7 +100,7 @@ class DPR_Test_Postdrafter extends WP_UnitTestCase {
 		
 		$this->drafter->publish_draft($draft);
 		
-		$test_draft = get_post($draft_id);
+		$test_draft = get_post($draft->ID);
 		$test_published = get_post($parent->ID);
 		
 		$this->assertNull($test_draft);

@@ -3,7 +3,7 @@ Contributors: daxitude
 Tags: status, post status, workflow, Revision
 Requires at least: 3.4
 Tested up to: 3.4.2
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,7 +43,6 @@ You can edit a draft's post content, taxonomies, and meta data as you like and s
 
 When you're ready to update the parent post, click the Publish button from the draft's edit page. All post data, taxonomies, and meta data are merged back into the parent post and the draft post is deleted.
 
-
 == Screenshots ==
 
 1. Editing a draft
@@ -51,4 +50,13 @@ When you're ready to update the parent post, click the Publish button from the d
 1. Comparing changes
 1. Draft revisions organized in edit.php under their own custom post status
 
+== Changelog ==
 
+= 0.7.2 =
+* bugfix - make sure serialized post metas are unserialized/serialized properly
+
+= 0.7.1 =
+* bugfix - make sure post_name is unique
+
+= 0.7 =
+* initial release

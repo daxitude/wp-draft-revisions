@@ -6,7 +6,7 @@
 class Draft_Post_Revisions {
 	
 	// plugin version number
-	public static $version = "0.7.2";
+	public static $version = "0.7.3";
 	// key for wp_options to store plugin options
 	private static $options_key = 'dpr_options';
 	// array of permitted options
@@ -34,7 +34,7 @@ class Draft_Post_Revisions {
 		// flash-y wp admin notices
 		$this->notices = new DPR_Admin_Notice();
 		// Postdrafter handles creating and merging drafts
-		$this->drafter = new DPR_Postdrafter(&$this);
+		$this->drafter = new DPR_Postdrafter($this);
 
 		// hook into pre_post_update to create new draft
 		add_action('pre_post_update', array($this, 'route_create'), 1);		
@@ -170,7 +170,7 @@ class Draft_Post_Revisions {
 		}
 		
 		// do the diff
-		$differ = new DPR_Admin_Diff(&$parent, &$draft);
+		$differ = new DPR_Admin_Diff($parent, $draft);
 		$rev_fields = $differ->diff();
 		
 		// wp global, sets up the correct menu item to be active

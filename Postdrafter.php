@@ -155,12 +155,14 @@ class DPR_Postdrafter {
 		$taxis = get_object_taxonomies( get_post_type($from_id) );
 
 		foreach ($taxis as $tax) {
+			// could pass all taxonomy names as an array here
 		    $terms = wp_get_object_terms( $from_id, $tax );
 		    $term = array();
 		    foreach ($terms as $t) {
 		        $term[] = $t->slug;
 		    } 
 
+			// false replaces (true would append)
 		    wp_set_object_terms( $to_id, $term, $tax, false );
 		}
 	}

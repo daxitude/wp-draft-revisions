@@ -1,31 +1,53 @@
+<style>
+	.diff-context, .diff-addedline, .diff-deletedline  { width: 48% }
+</style>
+
 <div class="wrap">
 
 <h2 class="long-header">Compare Revisions of {{left.post_title}}</h2>
 
-<table class="form-table ie-fixed">
-	<col class="th" />
+<div class="revisions">
+	<div class="revisions-control-frame">
+		<div class="revisions-meta">
+			<div class="revisions-diff">
+				<div class="diff">
 
-<tr id="revision">
-	<th scope="row"></th>
-	<th scope="col" class="th-full">
-		<span class="alignleft">
-			<strong>Parent:</strong> <a href="{{#edit_link}}{{left.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{left.post_modified}}{{/format_date}}</a>
-		</span>
-		<span class="alignright">
-			<strong>Draft:</strong> <a href="{{#edit_link}}{{right.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{right.post_modified}}{{/format_date}}</a>
-		</span>
-	</th>
-</tr>
+					<table width="100%">
+						<colgroup><col class="content diffsplit left"><col class="content diffsplit middle"><col class="content diffsplit right"></colgroup>
 
-{{#rev_fields}}
-<tr id="revision-field-{{field}}">
-	<th scope="row">{{{title}}}</th>
-	<td><div class="pre">{{{content}}}</div></td>
-</tr>
-{{/rev_fields}}
+						<tbody>
+							<tr>
+								<td class="diff-context">
+									<strong>Parent:</strong> <a href="{{#edit_link}}{{left.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{left.post_modified}}{{/format_date}}</a>
+								</td>
+								<td width="4%">&nbsp;</td>
+								<td class="diff-context">
+									<strong>Draft:</strong> <a href="{{#edit_link}}{{right.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{right.post_modified}}{{/format_date}}</a>
+								</td>
+							</tr>
+						</tbody>
+					</table>
 
-{{^rev_fields}}
-<tr><td colspan="2"><div class="updated"><p>These revisions are identical.</p></div></td></tr>
-{{/rev_fields}}
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="revisions-diff-frame revisions-meta">
+		<div class="revisions-diff">
+			<div class="diff">
+				
+				{{#rev_fields}}
+				<h3>{{{title}}}</h3>
+				{{{content}}}
+				{{/rev_fields}}	
+				
+				{{^rev_fields}}
+				<tr><td colspan="2"><div class="updated"><p>These revisions are identical.</p></div></td></tr>
+				{{/rev_fields}}
+				
+			</div>
+		</div>
+	</div>
+</div>
 
-</table>

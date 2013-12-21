@@ -52,7 +52,7 @@ When you're ready to update the parent post, click the Publish button from the d
 
 == Changelog ==
 
-= 0.8 =
+= 0.8.1 =
 * updated to be compatible with WP 3.8
 
 = 0.7.3 =

@@ -6,7 +6,7 @@
 class Draft_Post_Revisions {
 	
 	// plugin version number
-	public static $version = "0.8";
+	public static $version = "0.8.1";
 	// key for wp_options to store plugin options
 	private static $options_key = 'dpr_options';
 	// array of permitted options

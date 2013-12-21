@@ -50,6 +50,9 @@ class Draft_Post_Revisions {
 		if ('edit.php' == $pagenow)
 			add_action('admin_print_scripts', array($this, 'add_js'));
 		
+		if ('post.php' == $pagenow && isset($_GET['dpr_published']) && $_GET['dpr_published'])
+			add_action('admin_footer-post.php', array($this, 'add_autosave_cancel_js'), 999999);	
+		
 		// custom revision page and method
 		add_action('load-revision.php', array($this, 'dpr_revision'));		
 		// add action to deal with post deletion
@@ -66,6 +69,12 @@ class Draft_Post_Revisions {
 	public function add_js() {
 		wp_register_script( 'dprjs', plugins_url( '/assets/dpr.dev.js', __FILE__ ), '', '1.0', 'true' );
 		wp_enqueue_script( 'dprjs' );
+	}
+	
+	// this is a hack to keep wp autosave from finding different post_content in local storage and
+	// subsequently displaying an admin notice
+	public function add_autosave_cancel_js() {
+		echo '<script>wp.autosave.local.setData(false); wp.autosave.local.checkPost();</script>';
 	}
 		
 	// routes a request to create a new draft
@@ -123,14 +132,14 @@ class Draft_Post_Revisions {
 		if ($ajax)
 			exit(DPR_Mustache::render('post_edit_row', array('post' => get_post($pub_id))));
 		
-		wp_redirect( get_edit_post_link($redirect_id, '&') );
+		wp_redirect( get_edit_post_link($redirect_id, '&') . "&dpr_published=true" );
 		exit();
 	}
 	
 	// load-revision.php callback to create our own custom diff page
 	// mostly follows wp's revision.php
 	public function dpr_revision() {
-		if ( $_GET['action'] != 'dpr_diff' ) return;
+		if ( !isset($_GET['action']) || $_GET['action'] != 'dpr_diff' ) return;
 		
 		// a wp global to set the correct active menu item
 		global $parent_file;

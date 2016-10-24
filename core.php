@@ -57,6 +57,12 @@ class Draft_Post_Revisions {
 		add_action('load-revision.php', array($this, 'dpr_revision'));		
 		// add action to deal with post deletion
 		add_action('publish_to_trash', array($this, 'post_deletion'));
+		
+		// load language files
+		add_action('init', function() { 
+				load_plugin_textdomain( 'drafts-of-post-revisions', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+		});
+		
 	}
 	
 	// proxy to Postdrafter's static add post status method. this is the only thing we do
@@ -87,14 +93,14 @@ class Draft_Post_Revisions {
 		if ( isset($_POST['save']) && $_POST['save'] == self::$draft_text ) {
 			// check user permissions
 			if ( ! current_user_can( 'edit_post', $id ) )
-				wp_die('You don\'t have permission to edit this post.');
+				wp_die(__('You don\'t have permission to edit this post.','drafts-of-post-revisions'));
 			
 			$draft_id = $this->drafter->create_draft($id);
 			$redirect_id = $draft_id ? $draft_id : $id;
 			// add error message
 			if (!$draft_id) {
 				$this->notices->add(array(
-					'text' => '<strong>Whoops!</strong> Failed to create the draft. Please try again.',
+					'text' => __('<strong>Whoops!</strong> Failed to create the draft. Please try again.','drafts-of-post-revisions'),
 					'type' => 'error'
 				));
 			}				
@@ -117,14 +123,14 @@ class Draft_Post_Revisions {
 		
 		// check user permissions
 		if ( ! current_user_can( 'edit_post', $post->ID ) )
-			wp_die('You don\'t have permission to edit this post.');
+			wp_die(__('You don\'t have permission to edit this post.','drafts-of-post-revisions'));
 
 		$pub_id = $this->drafter->publish_draft($post);
 		$redirect_id = $pub_id ? $pub_id : $post->ID;		
 		// add error message
 		if (!$pub_id) {
 			$this->notices->add(array(
-				'text' => '<strong>Whoops!</strong> Failed to publish the draft. Please try again.',
+				'text' => __('<strong>Whoops!</strong> Failed to publish the draft. Please try again.','drafts-of-post-revisions'),
 				'type' => 'error'
 			));
 		}
@@ -154,7 +160,7 @@ class Draft_Post_Revisions {
 			! current_user_can( 'read_post', $right->ID )
 		) {
 			$this->notices->add(array(
-				'text' => '<strong>Whoops!</strong> You don\'t have permission to view these posts.',
+				'text' => __('<strong>Whoops!</strong> You don\'t have permission to view these posts.', 'drafts-of-post-revisions'),
 				'type' => 'error'
 			));
 			wp_redirect(admin_url('index.php'));
@@ -171,7 +177,7 @@ class Draft_Post_Revisions {
 			$draft = $left;
 		} else {
 			$this->notices->add(array(
-				'text' => '<strong>Whoops!</strong> Those posts aren\'t related.',
+				'text' => __('<strong>Whoops!</strong> Those posts aren\'t related.', 'drafts-of-post-revisions'),
 				'type' => 'error'
 			));
 			wp_redirect(get_edit_post_link($left->ID));
@@ -298,7 +304,7 @@ class Draft_Post_Revisions {
 		
 		add_meta_box(
 			'dpr-draft',
-			'Drafts of Revisions',
+			__('Drafts of Revisions', 'drafts-of-post-revisions'),
 			array($this, $tpl),
 			$post->post_type,
 			'side',

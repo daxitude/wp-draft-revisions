@@ -3,10 +3,10 @@
 	<th scope="row" class="check-column"></th>
 	<script>jQuery('.dpr-title-cell').trigger('setColSpan')</script>
 	<td class="post-title page-title column-title dpr-title-cell" colspan="">
-		<strong>{{post.post_title}} published successfully!</strong>
+		<strong>{{post.post_title}} {{#i18n}}published successfully{{/i18n}}!</strong>
 		<div class="row-actions">
-			<span class="edit"><a href="{{#edit_link}}{{post.ID}}{{/edit_link}}" title="Edit this item">Edit Parent</a> | </span>
-			<span class="view"><a href="{{#permalink}}{{post.ID}}{{/permalink}}" title="View" rel="permalink">View Parent</a></span>
+			<span class="edit"><a href="{{#edit_link}}{{post.ID}}{{/edit_link}}" title="{{#i18n}}Edit this item{{/i18n}}">{{#i18n}}Edit Parent{{/i18n}}</a> | </span>
+			<span class="view"><a href="{{#permalink}}{{post.ID}}{{/permalink}}" title="{{#i18n}}View{{/i18n}}" rel="permalink">{{#i18n}}View Parent{{/i18n}}</a></span>
 		</div>
 	</td>
 		

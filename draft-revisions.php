@@ -2,10 +2,10 @@
 /*
 Plugin Name: Drafts of Post Revisions
 Description: Create drafts of WordPress posts/pages/CPTs even after they've been published
-Version: 0.8.1
-Author: daxitude
-Author URI: http://github.com/daxitude/
-Plugin URI: http://github.com/daxitude/wp-draft-revisions
+Version: 0.9.0
+Author: daxitude, Jan Alwin de Jong
+Author URI: http://github.com/lineupboekenmedia/
+Plugin URI: http://github.com/lineupbokeenmedia/wp-draft-revisions
 */
 
 require_once('core.php');

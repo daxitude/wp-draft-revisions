@@ -24,7 +24,8 @@ abstract class DPR_Mustachio {
 				'helpers' => array(
 					'format_date' => array(__CLASS__, 'helper_format_date'),
 					'edit_link' => array(__CLASS__, 'helper_edit_link'),
-					'permalink' => array(__CLASS__, 'helper_permalink')
+					'permalink' => array(__CLASS__, 'helper_permalink'),
+					'i18n' => array(__CLASS__, 'helper_translate'),
 				)
 			)
 		);
@@ -50,9 +51,17 @@ abstract class DPR_Mustachio {
 	public static function helper_format_date($date, $mustache) {
 		// silly php bug strtotime not returning false for '0000..' mysql null val
 		$date = strtotime($mustache->render($date));
-		return $date > 0 ? date('D, M d g:h a', $date) : '--';
+		return $date > 0 ? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $date) : '--';
 	}
 	
+	// translate strings in templates
+	public static function helper_translate($string, $mustache) {
+		//return "X" . $string . "X";
+		
+		
+ 		$translation =__($mustache->render($string), 'drafts-of-post-revisions');
+		return  $translation;
+	}
 
 }
 

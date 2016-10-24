@@ -3,12 +3,12 @@
 {{#kids}}
 	<li>
 		<a href="{{#edit_link}}{{ID}}{{/edit_link}}" title="edit this post">{{post_title}}</a>, 
-		by {{post_author}} on {{#format_date}}{{post_modified}}{{/format_date}}
+		{{#i18n}}by{{/i18n}} {{post_author}} {{#i18n}}on{{/i18n}} {{#format_date}}{{post_modified}}{{/format_date}}
 	</li>
 {{/kids}}
 </ul>
 {{^kids}}
 <p>No drafts yet.</p>
 {{/kids}}
-<input type="submit" class="button" tabindex="4" value="Save a Draft" id="dpr-save-draft" name="save">
+<input type="submit" class="button" tabindex="4" value=" {{#i18n}}Save a Draft{{/i18n}}" id="dpr-save-draft" name="save">
 <div class="clear"></div>

@@ -1,0 +1,172 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: drafts-of-post-revisions v0.9\n"
+"POT-Creation-Date: 2016-10-24 15:45+0100\n"
+"PO-Revision-Date: 2016-10-24 15:46+0100\n"
+"Last-Translator: Jan Alwin de Jong <janalwin@lineup.nl>\n"
+"Language-Team: LINE UP boek en media <admin@lineupdevelopment.nl>\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.5\n"
+"X-Poedit-KeywordsList: __;_e;_x\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../core.php:96 ../core.php:126
+msgid "You don't have permission to edit this post."
+msgstr "Je hebt geen toestemming om dit bericht te bewerken."
+
+#: ../core.php:103
+msgid "<strong>Whoops!</strong> Failed to create the draft. Please try again."
+msgstr ""
+"<strong>Oeps!</strong> Het aanmaken van een concept is mislukt. Probeer het "
+"opnieuw."
+
+#: ../core.php:133
+msgid "<strong>Whoops!</strong> Failed to publish the draft. Please try again."
+msgstr ""
+"<strong>Oeps!</strong> Het publiceren van het concept is mislukt. Probeer "
+"het opnieuw."
+
+#: ../core.php:163
+msgid "<strong>Whoops!</strong> You don't have permission to view these posts."
+msgstr ""
+"<strong>Oeps!</strong> Je hebt geen toestemming om deze berichten te "
+"bewerken."
+
+#: ../core.php:180
+msgid "<strong>Whoops!</strong> Those posts aren't related."
+msgstr "<strong>Oeps!</strong> De berichten zijn niet gerelateerd."
+
+#: ../core.php:307
+msgid "Drafts of Revisions"
+msgstr "Concepten van Revisies"
+
+#: ../languages/dictionary.php:11
+msgid "Compare Revisions of"
+msgstr "Vergelijk revisies van"
+
+#: ../languages/dictionary.php:12
+msgid "Parent"
+msgstr "Orgineel"
+
+#: ../languages/dictionary.php:13
+msgid "Draft"
+msgstr "Concept"
+
+#: ../languages/dictionary.php:14
+msgid "These revisions are identical"
+msgstr "Deze revisies zijn gelijk"
+
+#: ../languages/dictionary.php:18
+msgid "Set Permitted Post Types"
+msgstr "Stel toegestane posttypes in"
+
+#: ../languages/dictionary.php:22
+msgid "published successfully"
+msgstr "is succesvol gepubliceerd"
+
+#: ../languages/dictionary.php:23
+msgid "Edit this item"
+msgstr "Bewerk dit item"
+
+#: ../languages/dictionary.php:24
+msgid "Edit Parent"
+msgstr "Bewerk origineel"
+
+#: ../languages/dictionary.php:25
+msgid "View Parent"
+msgstr "Bekijk orgineel"
+
+#: ../languages/dictionary.php:26
+msgid "View"
+msgstr "Bekijk"
+
+#: ../languages/dictionary.php:32
+msgid "This is a draft of"
+msgstr "Dit is een concept van"
+
+#: ../languages/dictionary.php:33
+msgid "link to"
+msgstr "koppeling naar"
+
+#: ../languages/dictionary.php:34
+msgid "'s edit screen"
+msgstr "'s bewerkscherm"
+
+#: ../languages/dictionary.php:35
+msgid ""
+"You can continue to work on this revision and save changes with the "
+"<strong>Save Draft</strong> button. When you are ready to publish the "
+"revision, use the <strong>Publish</strong> button."
+msgstr ""
+"U kunt blijven werken in deze revisie en wijzigingen opslaan met de "
+"<strong>Opslaan als Concept</strong>-knop. Als u klaar bent om de revisie te "
+"publiceren, gebruik dan de <strong>Publiceer</strong>-knop"
+
+#: ../languages/dictionary.php:36
+msgid "compare changes"
+msgstr "vergelijk veranderingen"
+
+#: ../languages/dictionary.php:37
+msgid "Compare changes"
+msgstr "Vergelijk veranderingen"
+
+#: ../languages/dictionary.php:38
+msgid "against the parent"
+msgstr "ten opzichte van het orgineel"
+
+#: ../languages/dictionary.php:42
+msgid "by"
+msgstr "door"
+
+#: ../languages/dictionary.php:43
+msgid "on"
+msgstr "op"
+
+#: ../languages/dictionary.php:44
+msgid "Save a Draft"
+msgstr "Opslaan als Concept"
+
+#: ../languages/dictionary.php:47
+msgid "Notice"
+msgstr "Melding"
+
+#: ../languages/dictionary.php:48
+msgid ""
+"this post has active drafts. If you edit the published version of the post "
+"then you may have to perform a comparison later on to reconcile changes"
+msgstr ""
+"dit bericht heeft actieve concepten. Als u de gepubliceerde versie bewerkt, "
+"dan zult u misschien een vergelijking moeten doen om de verschillen op te "
+"lossen"
+
+#: ../languages/dictionary.php:51
+msgid ""
+"the parent post has been updated since this draft was created. Would you "
+"like to"
+msgstr ""
+"het origineel bericht is geüpdatet sinds de creatie van het concept. Wilt u"
+
+#: ../languages/dictionary.php:52
+msgid "show a diff between the two revisions"
+msgstr "toon vergelijking tussen twee versies"
+
+#: ../languages/dictionary.php:55
+msgid "Warning"
+msgstr "Waarschuwing"
+
+#: ../languages/dictionary.php:56
+msgid ""
+"has drafts. You can undo the action with the undo link below. If you delete "
+"this post permanently, it's drafts will be deleted as well"
+msgstr ""
+"heeft concepten.  U kunt de actie hertellen met de onderstaande "
+"herstelkoppeling. Als je dit bericht permanent verwijderd, worden de "
+"concepten ook verwijderd"
+
+#~ msgid "TEST"
+#~ msgstr "test"

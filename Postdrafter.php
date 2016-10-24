@@ -34,8 +34,7 @@ class DPR_Postdrafter {
 			'exclude_from_search' => true,
 			'show_in_admin_all_list' => false,
 			'show_in_admin_status_list' => true,
-			'label_count' => _n_noop( 'Draft Revisions <span class="count">(%s)</span>',
-				'Draft Revisions <span class="count">(%s)</span>' )
+			'label_count' => _n_noop( 'Draft Revisions <span class="count">(%s)</span>', 'Draft Revisions <span class="count">(%s)</span>', 'drafts-of-post-revisions')
 		) );
 	}
 		

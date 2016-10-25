@@ -90,7 +90,10 @@ class Draft_Post_Revisions {
 			return $id;
 		
 		// check to see if we are saving a new draft
-		if ( isset($_POST['save']) && $_POST['save'] == self::$draft_text ) {
+		// we are checking the value (= displayed name) of the save button. This value
+		// is different in other languages so we have to translate self::$draft_text
+		// not a very nice solution, but it works for now.
+		if ( isset($_POST['save']) && $_POST['save'] == __(self::$draft_text, 'drafts-of-post-revisions') ) {
 			// check user permissions
 			if ( ! current_user_can( 'edit_post', $id ) )
 				wp_die(__('You don\'t have permission to edit this post.','drafts-of-post-revisions'));

@@ -51,7 +51,7 @@ abstract class DPR_Mustachio {
 	public static function helper_format_date($date, $mustache) {
 		// silly php bug strtotime not returning false for '0000..' mysql null val
 		$date = strtotime($mustache->render($date));
-		return $date > 0 ? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $date) : '--';
+		return $date > 0 ? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime($date)) : '--';
 	}
 	
 	// translate strings in templates

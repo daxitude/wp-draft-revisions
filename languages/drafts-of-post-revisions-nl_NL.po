@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: drafts-of-post-revisions v0.9\n"
-"POT-Creation-Date: 2016-10-24 15:45+0100\n"
-"PO-Revision-Date: 2016-10-25 15:14+0100\n"
+"POT-Creation-Date: 2016-10-25 16:33+0100\n"
+"PO-Revision-Date: 2016-10-25 16:33+0100\n"
 "Last-Translator: Jan Alwin de Jong <janalwin@lineup.nl>\n"
 "Language-Team: LINE UP boek en media <admin@lineupdevelopment.nl>\n"
 "Language: nl_NL\n"
@@ -10,38 +10,42 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.5\n"
-"X-Poedit-KeywordsList: __;_e;_x\n"
+"X-Poedit-KeywordsList: __;_e;_x;esc_html__\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: ..\n"
 
-#: ../core.php:96 ../core.php:126
+#: ../core.php:86
+msgid "Are you sure that you wan't to publish this draft?"
+msgstr "Weet u zeker dat u dit concept wilt publiceren?"
+
+#: ../core.php:110 ../core.php:140
 msgid "You don't have permission to edit this post."
 msgstr "Je hebt geen toestemming om dit bericht te bewerken."
 
-#: ../core.php:103
+#: ../core.php:117
 msgid "<strong>Whoops!</strong> Failed to create the draft. Please try again."
 msgstr ""
 "<strong>Oeps!</strong> Het aanmaken van een concept is mislukt. Probeer het "
 "opnieuw."
 
-#: ../core.php:133
+#: ../core.php:147
 msgid "<strong>Whoops!</strong> Failed to publish the draft. Please try again."
 msgstr ""
 "<strong>Oeps!</strong> Het publiceren van het concept is mislukt. Probeer "
 "het opnieuw."
 
-#: ../core.php:163
+#: ../core.php:177
 msgid "<strong>Whoops!</strong> You don't have permission to view these posts."
 msgstr ""
 "<strong>Oeps!</strong> Je hebt geen toestemming om deze berichten te "
 "bewerken."
 
-#: ../core.php:180
+#: ../core.php:194
 msgid "<strong>Whoops!</strong> Those posts aren't related."
 msgstr "<strong>Oeps!</strong> De berichten zijn niet gerelateerd."
 
-#: ../core.php:307
+#: ../core.php:321
 msgid "Drafts of Revisions"
 msgstr "Concepten van Revisies"
 

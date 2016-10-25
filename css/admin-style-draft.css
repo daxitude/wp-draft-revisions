@@ -1,0 +1,50 @@
+/* Stylesheet for draft plugin backend
+*
+* 
+*    Created on : 2-jun-2015, 16:37:01
+*    Author     : Lineup
+*/
+
+
+
+input#safe-post {
+    border: 1px solid red !important;
+    
+    color: yellow !important;
+}
+
+#save-action input {
+    color: white;    
+    background-color: #0085ba;
+}
+
+#save-action::after {
+    content: "<- Kies dit om de draft op te slaan";    
+    display: inline-block;
+    float: left;
+    width:90px;
+    margin: -20px 0 10px 10px;
+    padding: 5px;
+    background: red;
+    color: white;
+    text-align: left;
+}
+
+/*#publishing-action input {
+    color: #555;    
+    background-color: #f7f7f7;
+    text-shadow: none;
+    border-color: #ccc;
+}*/
+
+#publishing-action::after {
+    content: "Kies dit om de draft te publiceren->";    
+    display: inline-block;
+    float: left;
+    width:90px;
+    margin: 0px 10px 0 10px;
+    padding: 5px;
+    background: red;
+    color: white;
+    text-align: left;
+}

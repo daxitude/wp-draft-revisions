@@ -47,6 +47,12 @@ class Draft_Post_Revisions {
 		// add meta boxes
 		add_action('add_meta_boxes', array($this, 'meta_boxes'));
 		
+		// add styles to admin
+		add_action('admin_enqueue_scripts', array($this, 'add_admin_styles'));
+		
+		// add the status to the body class
+		add_filter('admin_body_class', array($this, 'add_status_to_body_class'));
+		
 		if ('edit.php' == $pagenow)
 			add_action('admin_print_scripts', array($this, 'add_js'));
 		
@@ -75,6 +81,11 @@ class Draft_Post_Revisions {
 	public function add_js() {
 		wp_register_script( 'dprjs', plugins_url( '/assets/dpr.dev.js', __FILE__ ), '', '1.0', 'true' );
 		wp_enqueue_script( 'dprjs' );
+		
+		wp_localize_script( 'dprjs', 'objectL10n', array(
+	'confirmMessage' => esc_html__( 'Are you sure that you wan\'t to publish this draft?', 'drafts-of-post-revisions' ),
+) );
+		
 	}
 	
 	// this is a hack to keep wp autosave from finding different post_content in local storage and
@@ -388,6 +399,41 @@ class Draft_Post_Revisions {
 			$this->update_option(array('version' => self::$version));
 		}			
 	}
+	
+	
+	/**
+     *  loads styles en scripts for the plugin for admin
+     */
+    function add_admin_styles() {
+
+        //wp_enqueue_script('draft_script', static::getAbsoluteURLOfPlugin() . '/js/draft_script.js', array('jquery'));
+
+        // Only load stylesheet for draft of posts
+        global $post;
+        $status = get_post_status($post->ID);
+        if ($status == "dpr_draft") {
+            wp_enqueue_style('dfr_draft_style', plugins_url( '/css/admin-style-draft.css', __FILE__ ));
+
+        }
+    }
+	
+	
+	 /**
+     * Add status to body class, so we can change the appereance of the 
+	  * Drafts and publish buttons in admin.
+     * 
+     * @wp-hook admin_body_class
+     * @param  string $classes
+	 * @return string
+     */
+    public function add_status_to_body_class($classes) {
+        global $post;
+        $status = get_post_status($post->ID);
+        $classes.= ' post-status_' . $status . ' ';
+        return $classes;
+    }
+	
+	
 	
 	public static function options_key() {
 		return self::$options_key;

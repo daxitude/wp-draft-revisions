@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: drafts-of-post-revisions v0.9\n"
-"POT-Creation-Date: 2016-10-25 16:33+0100\n"
-"PO-Revision-Date: 2016-10-25 16:33+0100\n"
+"POT-Creation-Date: 2016-10-26 11:44+0100\n"
+"PO-Revision-Date: 2016-10-26 11:53+0100\n"
 "Last-Translator: Jan Alwin de Jong <janalwin@lineup.nl>\n"
 "Language-Team: LINE UP boek en media <admin@lineupdevelopment.nl>\n"
 "Language: nl_NL\n"
@@ -10,9 +10,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.5\n"
-"X-Poedit-KeywordsList: __;_e;_x;esc_html__\n"
+"X-Poedit-KeywordsList: __;_e;_x;esc_html__;_n_noop:1,2\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SourceCharset: UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SearchPath-0: ..\n"
 
 #: ../core.php:86
@@ -47,7 +48,19 @@ msgstr "<strong>Oeps!</strong> De berichten zijn niet gerelateerd."
 
 #: ../core.php:321
 msgid "Drafts of Revisions"
-msgstr "Concepten van Revisies"
+msgstr "Concepten van gepubliceerd bericht"
+
+#: ../Postdrafter.php:31
+msgid "Draft Revision"
+msgstr "Concept van gepubliceerd bericht"
+
+#: ../Postdrafter.php:37
+#, php-format
+msgid "Draft Revisions <span class=\"count\">(%s)</span>"
+msgid_plural "Draft Revisions <span class=\"count\">(%s)</span>"
+msgstr[0] "Concept van gepubliceerd bericht <span class=\"count\">(%s)</span>"
+msgstr[1] ""
+"Concepten van gepubliceerd bericht <span class=\"count\">(%s)</span>"
 
 #: ../languages/dictionary.php:11
 msgid "Compare Revisions of"
@@ -55,7 +68,7 @@ msgstr "Vergelijk revisies van"
 
 #: ../languages/dictionary.php:12
 msgid "Parent"
-msgstr "Orgineel"
+msgstr "Origineel"
 
 #: ../languages/dictionary.php:13
 msgid "Draft"
@@ -108,20 +121,20 @@ msgid ""
 "revision, use the <strong>Publish</strong> button."
 msgstr ""
 "U kunt blijven werken in deze revisie en wijzigingen opslaan met de "
-"<strong>Opslaan als Concept</strong>-knop. Als u klaar bent om de revisie te "
-"publiceren, gebruik dan de <strong>Publiceer</strong>-knop"
+"<strong>Opslaan als concept</strong>-knop. Als u klaar bent om de revisie te "
+"publiceren, gebruik dan de <strong>Publiceren</strong>-knop"
 
 #: ../languages/dictionary.php:36
 msgid "compare changes"
-msgstr "vergelijk veranderingen"
+msgstr "veranderingen vergelijken"
 
 #: ../languages/dictionary.php:37
 msgid "Compare changes"
-msgstr "Vergelijk veranderingen"
+msgstr "Veranderingen vergelijken"
 
 #: ../languages/dictionary.php:38
 msgid "against the parent"
-msgstr "ten opzichte van het orgineel"
+msgstr "ten opzichte van het origineel"
 
 #: ../languages/dictionary.php:42
 msgid "by"
@@ -134,6 +147,10 @@ msgstr "op"
 #: ../languages/dictionary.php:44
 msgid "Save a Draft"
 msgstr "Opslaan als Concept"
+
+#: ../languages/dictionary.php:45
+msgid "No drafts yet"
+msgstr "Er zijn nog geen concepten"
 
 #: ../languages/dictionary.php:47
 msgid "Notice"

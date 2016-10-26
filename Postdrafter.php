@@ -28,7 +28,7 @@ class DPR_Postdrafter {
 	// @protected - see wp-includes/query.php line 2684. this enables previews. Ln2659 posts_results
 	public static function add_post_status() {
 		register_post_status(self::$status_value, array(
-			'label' => 'Draft Revision',
+			'label' => __('Draft Revision', 'drafts-of-post-revisions'),
 			'public' => false,
 			'protected' => true,
 			'exclude_from_search' => true,

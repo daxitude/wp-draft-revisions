@@ -42,7 +42,7 @@ __('against the parent', 'drafts-of-post-revisions');
 __('by', 'drafts-of-post-revisions');
 __('on', 'drafts-of-post-revisions');
 __('Save a Draft', 'drafts-of-post-revisions');
-
+__('No drafts yet', 'drafts-of-post-revisions');
 // Admin/templates/notice/_active_drafts.html
 __('Notice', 'drafts-of-post-revisions');
 __('this post has active drafts. If you edit the published version of the post then you may have to perform a comparison later on to reconcile changes', 'drafts-of-post-revisions');

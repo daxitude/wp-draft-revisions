@@ -1,9 +1,9 @@
 === Drafts of Post Revisions ===
-Contributors: daxitude
+Contributors: daxitude, lineupboekenmedia
 Tags: status, post status, workflow, Revision
 Requires at least: 3.4
-Tested up to: 3.4.2
-Stable tag: 0.8.1
+Tested up to: 4.6.1
+Stable tag: 0.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,12 @@ When you're ready to update the parent post, click the Publish button from the d
 1. Draft revisions organized in edit.php under their own custom post status
 
 == Changelog ==
+= 0.9.0 =
+* Added support for language translation
+* Added dutch translation
+* Improved usability by changes the colors of the Save as Draft and Publish button. 
+* Improved usability by adding confirm dialogbox to the Publish button. 
+
 
 = 0.8.1 =
 * Fix diff page with new wp 3.8 html

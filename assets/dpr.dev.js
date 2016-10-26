@@ -32,5 +32,24 @@ jQuery(document).ready(function ($) {
 	$('#the-list').on('setColSpan', '.dpr-title-cell', function () {
 		$(this).attr('colspan', numCols);
 	});
+	
+	// are you sure message on Publish-button
+	if ($('body').hasClass('post-status_dpr_draft')) {
+
+        $('#publishing-action input').click(function () {
+            var retVal = confirm(objectL10n.confirmMessage);
+            if (retVal == true) {
+                return true;
+            }
+            else {
+                return false;
+            }
+
+        });
+    }
+	
+	
 		
 });
+
+

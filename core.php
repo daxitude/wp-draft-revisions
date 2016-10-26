@@ -47,6 +47,12 @@ class Draft_Post_Revisions {
 		// add meta boxes
 		add_action('add_meta_boxes', array($this, 'meta_boxes'));
 		
+		// add styles to admin
+		add_action('admin_enqueue_scripts', array($this, 'add_admin_styles'));
+		
+		// add the status to the body class
+		add_filter('admin_body_class', array($this, 'add_status_to_body_class'));
+		
 		if ('edit.php' == $pagenow)
 			add_action('admin_print_scripts', array($this, 'add_js'));
 		
@@ -57,6 +63,12 @@ class Draft_Post_Revisions {
 		add_action('load-revision.php', array($this, 'dpr_revision'));		
 		// add action to deal with post deletion
 		add_action('publish_to_trash', array($this, 'post_deletion'));
+		
+		// load language files
+		add_action('init', function() { 
+				load_plugin_textdomain( 'drafts-of-post-revisions', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+		});
+		
 	}
 	
 	// proxy to Postdrafter's static add post status method. this is the only thing we do
@@ -69,6 +81,11 @@ class Draft_Post_Revisions {
 	public function add_js() {
 		wp_register_script( 'dprjs', plugins_url( '/assets/dpr.dev.js', __FILE__ ), '', '1.0', 'true' );
 		wp_enqueue_script( 'dprjs' );
+		
+		wp_localize_script( 'dprjs', 'objectL10n', array(
+	'confirmMessage' => esc_html__( 'Are you sure that you wan\'t to publish this draft?', 'drafts-of-post-revisions' ),
+) );
+		
 	}
 	
 	// this is a hack to keep wp autosave from finding different post_content in local storage and
@@ -84,17 +101,20 @@ class Draft_Post_Revisions {
 			return $id;
 		
 		// check to see if we are saving a new draft
-		if ( isset($_POST['save']) && $_POST['save'] == self::$draft_text ) {
+		// we are checking the value (= displayed name) of the save button. This value
+		// is different in other languages so we have to translate self::$draft_text
+		// not a very nice solution, but it works for now.
+		if ( isset($_POST['save']) && $_POST['save'] == __(self::$draft_text, 'drafts-of-post-revisions') ) {
 			// check user permissions
 			if ( ! current_user_can( 'edit_post', $id ) )
-				wp_die('You don\'t have permission to edit this post.');
+				wp_die(__('You don\'t have permission to edit this post.','drafts-of-post-revisions'));
 			
 			$draft_id = $this->drafter->create_draft($id);
 			$redirect_id = $draft_id ? $draft_id : $id;
 			// add error message
 			if (!$draft_id) {
 				$this->notices->add(array(
-					'text' => '<strong>Whoops!</strong> Failed to create the draft. Please try again.',
+					'text' => __('<strong>Whoops!</strong> Failed to create the draft. Please try again.','drafts-of-post-revisions'),
 					'type' => 'error'
 				));
 			}				
@@ -117,14 +137,14 @@ class Draft_Post_Revisions {
 		
 		// check user permissions
 		if ( ! current_user_can( 'edit_post', $post->ID ) )
-			wp_die('You don\'t have permission to edit this post.');
+			wp_die(__('You don\'t have permission to edit this post.','drafts-of-post-revisions'));
 
 		$pub_id = $this->drafter->publish_draft($post);
 		$redirect_id = $pub_id ? $pub_id : $post->ID;		
 		// add error message
 		if (!$pub_id) {
 			$this->notices->add(array(
-				'text' => '<strong>Whoops!</strong> Failed to publish the draft. Please try again.',
+				'text' => __('<strong>Whoops!</strong> Failed to publish the draft. Please try again.','drafts-of-post-revisions'),
 				'type' => 'error'
 			));
 		}
@@ -154,7 +174,7 @@ class Draft_Post_Revisions {
 			! current_user_can( 'read_post', $right->ID )
 		) {
 			$this->notices->add(array(
-				'text' => '<strong>Whoops!</strong> You don\'t have permission to view these posts.',
+				'text' => __('<strong>Whoops!</strong> You don\'t have permission to view these posts.', 'drafts-of-post-revisions'),
 				'type' => 'error'
 			));
 			wp_redirect(admin_url('index.php'));
@@ -171,7 +191,7 @@ class Draft_Post_Revisions {
 			$draft = $left;
 		} else {
 			$this->notices->add(array(
-				'text' => '<strong>Whoops!</strong> Those posts aren\'t related.',
+				'text' => __('<strong>Whoops!</strong> Those posts aren\'t related.', 'drafts-of-post-revisions'),
 				'type' => 'error'
 			));
 			wp_redirect(get_edit_post_link($left->ID));
@@ -298,7 +318,7 @@ class Draft_Post_Revisions {
 		
 		add_meta_box(
 			'dpr-draft',
-			'Drafts of Revisions',
+			__('Drafts of Revisions', 'drafts-of-post-revisions'),
 			array($this, $tpl),
 			$post->post_type,
 			'side',
@@ -379,6 +399,41 @@ class Draft_Post_Revisions {
 			$this->update_option(array('version' => self::$version));
 		}			
 	}
+	
+	
+	/**
+     *  loads styles en scripts for the plugin for admin
+     */
+    function add_admin_styles() {
+
+        //wp_enqueue_script('draft_script', static::getAbsoluteURLOfPlugin() . '/js/draft_script.js', array('jquery'));
+
+        // Only load stylesheet for draft of posts
+        global $post;
+        $status = get_post_status($post->ID);
+        if ($status == "dpr_draft") {
+            wp_enqueue_style('dfr_draft_style', plugins_url( '/css/admin-style-draft.css', __FILE__ ));
+
+        }
+    }
+	
+	
+	 /**
+     * Add status to body class, so we can change the appereance of the 
+	  * Drafts and publish buttons in admin.
+     * 
+     * @wp-hook admin_body_class
+     * @param  string $classes
+	 * @return string
+     */
+    public function add_status_to_body_class($classes) {
+        global $post;
+        $status = get_post_status($post->ID);
+        $classes.= ' post-status_' . $status . ' ';
+        return $classes;
+    }
+	
+	
 	
 	public static function options_key() {
 		return self::$options_key;

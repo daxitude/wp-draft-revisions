@@ -3,7 +3,7 @@
 	
 	<form action="" method="post">
 	
-	<h3>Set Permitted Post Types</h3>
+	<h3>{{#i18n}}Set Permitted Post Types{{/i18n}}</h3>
 	{{#all_types}}
 		<label>
 			<input type="checkbox" name="post_types[]" value={{name}} {{#supported}}checked="checked"{{/supported}}> &nbsp;{{name}}

@@ -28,14 +28,13 @@ class DPR_Postdrafter {
 	// @protected - see wp-includes/query.php line 2684. this enables previews. Ln2659 posts_results
 	public static function add_post_status() {
 		register_post_status(self::$status_value, array(
-			'label' => 'Draft Revision',
+			'label' => __('Draft Revision', 'drafts-of-post-revisions'),
 			'public' => false,
 			'protected' => true,
 			'exclude_from_search' => true,
 			'show_in_admin_all_list' => false,
 			'show_in_admin_status_list' => true,
-			'label_count' => _n_noop( 'Draft Revisions <span class="count">(%s)</span>',
-				'Draft Revisions <span class="count">(%s)</span>' )
+			'label_count' => _n_noop( 'Draft Revisions <span class="count">(%s)</span>', 'Draft Revisions <span class="count">(%s)</span>', 'drafts-of-post-revisions')
 		) );
 	}
 		

@@ -1,0 +1,30 @@
+/* Stylesheet for draft plugin backend
+*
+* 
+*    Created on : 2-jun-2015, 16:37:01
+*    Author     : Lineup
+*/
+
+
+
+input#safe-post {
+    border: 1px solid red !important;
+    
+    color: yellow !important;
+}
+
+#save-action input {
+    color: white;    
+    background-color: #0085ba;
+}
+
+
+
+#publishing-action input {
+    background-color: #f1f1f1;
+    text-shadow: none;
+    border-color: #999;
+    color: #23282d;
+    
+}
+

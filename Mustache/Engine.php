@@ -554,6 +554,7 @@ class Mustache_Engine
      */
     private function getCacheFilename($source)
     {
+		
         if ($this->cache) {
             return sprintf('%s/%s.php', $this->cache, $this->getTemplateClassName($source));
         }
@@ -571,6 +572,8 @@ class Mustache_Engine
      */
     private function writeCacheFile($fileName, $source)
     {
+		
+		
         if (!is_dir(dirname($fileName))) {
             mkdir(dirname($fileName), 0777, true);
         }

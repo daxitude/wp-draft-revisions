@@ -4,7 +4,7 @@
 
 <div class="wrap">
 
-<h2 class="long-header">Compare Revisions of {{left.post_title}}</h2>
+<h2 class="long-header">{{#i18n}}Compare Revisions of{{/i18n}} {{left.post_title}}</h2>
 
 <div class="revisions">
 	<div class="revisions-control-frame">
@@ -18,11 +18,11 @@
 						<tbody>
 							<tr>
 								<td class="diff-context">
-									<strong>Parent:</strong> <a href="{{#edit_link}}{{left.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{left.post_modified}}{{/format_date}}</a>
+									<strong>{{#i18n}}Parent{{/i18n}}:</strong> <a href="{{#edit_link}}{{left.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{left.post_modified}}{{/format_date}}</a>
 								</td>
 								<td width="4%">&nbsp;</td>
 								<td class="diff-context">
-									<strong>Draft:</strong> <a href="{{#edit_link}}{{right.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{right.post_modified}}{{/format_date}}</a>
+									<strong>{{#i18n}}Draft{{/i18n}}:</strong> <a href="{{#edit_link}}{{right.ID}}{{/edit_link}}" title="edit">{{#format_date}}{{right.post_modified}}{{/format_date}}</a>
 								</td>
 							</tr>
 						</tbody>
@@ -43,7 +43,7 @@
 				{{/rev_fields}}	
 				
 				{{^rev_fields}}
-				<tr><td colspan="2"><div class="updated"><p>These revisions are identical.</p></div></td></tr>
+				<tr><td colspan="2"><div class="updated"><p>{{#i18n}}These revisions are identical{{/i18n}}.</p></div></td></tr>
 				{{/rev_fields}}
 				
 			</div>
